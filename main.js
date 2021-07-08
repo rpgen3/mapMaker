@@ -117,23 +117,28 @@
         'Canvas',
         'layer'
     ].map(v => `https://rpgen3.github.io/game/export/${v}.mjs`));
-    const {layer, isKeyDown} = rpgen4,
+    const {isKeyDown, layer} = rpgen4,
           cv = new rpgen4.Canvas(footer).set(0.9, 0.7),
           g_horizonY = {
               valueOf: () => cv.h * 0.9
           };
+    const mass = [...new Array()]; // 3次元配列
     let g_nowTime;
     const update = () => {
         g_nowTime = performance.now();
-        cv.ctx.clearRect(0, 0, cv.w, cv.h);
-        layer.forEach(v => v.update(cv.ctx));
+        const {ctx} = cv;
+        ctx.clearRect(0, 0, cv.w, cv.h);
+        const {x,y,width,height,depth} = now;
+        for(let i = 0; i < height; i++) for(let j = 0; j < width; j++) for(let k = 0; k < depth; k++) mass[i + y][j + x][k].draw?.(ctx, i, j);
+        layer.forEach(v => v.update(ctx));
         requestAnimationFrame(update);
     };
     update();
     new SimpleText({
         text: {
-            toString: () => `HP：${tsukinose.HP}`
+            toString: () => `座標(${x},${y})`
         },
-        size: 30
+        size: 30,
+        color: 'blue'
     });
 })();
