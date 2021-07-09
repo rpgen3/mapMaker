@@ -34,7 +34,7 @@
         draw(ctx, x, y){
             ctx.drawImage(
                 this.img,
-                x, y, Sprite, Sprite
+                x * Sprite, y * Sprite, Sprite, Sprite
             );
         }
         static valueOf(){
@@ -54,7 +54,7 @@
             ctx.drawImage(
                 img,
                 xx * unit, index * unit, unit, unit,
-                x, y, Sprite, Sprite
+                x * Sprite, y * Sprite, Sprite, Sprite
             );
         }
     }
@@ -77,19 +77,29 @@
             this.w = w;
             this.h = h;
         }
-        goto(x, y){
-            const {w, h} = this,
-                  {width, height} = g_dqMap.info,
-                  ww = width - w,
-                  hh = height - h;
-            this.x = x < 0 || ww < 0 ? 0 : x > ww ? ww : x;
-            this.y = y < 0 || hh < 0 ? 0 : y > hh ? hh : y;
-            return [this.x === x, this.y === y];
+        update(ctx){
+            if(!g_dqMap.data) return;
+            const {info, define, data} = g_dqMap,
+                  {width, height, depth} = info,
+                  {x, y, w, h} = this,
+                  _w = (w % 2 | 0) - 1,
+                  _h = (h % 2 | 0) - 1,
+                  {subX, subY, nowX, nowY} = player,
+                  _x = nowX - _w,
+                  _y = nowY - _h,
+                  _ww = width - w - 1,
+                  _hh = height - h - 1,
+                  _xx = (_x < 0 ? 0 : _x > _ww ? _ww : _x) | 0,
+                  _yy = (_y < 0 ? 0 : _y > _hh ? _hh : _y) | 0;
+            for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
+                imgurMap.get(define[data[i][j + _yy]?.[k + _xx]])?.draw(ctx, k - subX, j - subY);
+            }
         }
     };
     const player = new class {
         constructor(){
-            this.x = this.y = 0;
+            this.x = this.y = this._x = this._y = this.subX = this.subY = this.nowX = this.nowY = this._move = 0;
+            this.speed = 0.1;
         }
         dressUp(id){
             this.id = id;
@@ -100,17 +110,38 @@
             else if(isKeyDown(['ArrowRight','d'])) this.move(-1, 0);
             else if(isKeyDown(['ArrowUp','w'])) this.move(0, -1);
             else if(isKeyDown(['ArrowDown','s'])) this.move(0, 1);
+            const {x, y, _x, _y, _move, speed} = this;
+            if(_move) {
+                _move -= speed;
+                if(_move < 0) _move = 0;
+            }
+            this.subX = (x - _x) * _move;
+            this.subY = (y - _y) * _move;
+            this.nowX = x - this.subX;
+            this.nowY = y - this.subY;
+            //imgurMap.get(this.id).draw(ctx, this.nowX, this.nowY); 表示しなければセーフ
+            if(isKeyDown(['z'])) setSprite(x, y);
+            else if(isKeyDown(['x'])) deleteSprite(x, y);
         }
         goto(x, y){
-            const [isX, isY] = frame.goto(x, y);
-            const {w, h} = frame,
-                  {width, height} = g_dqMap.info,
-                  ww = width - w,
-                  hh = height - h;
+            const {width, height} = g_dqMap.info;
+            this.x = x < 0 ? 0 : x >= width ? width - 1 : x;
+            this.y = y < 0 ? 0 : y >= height ? height - 1 : y;
         }
         move(x, y){
+            this._x = this.x;
+            this._y = this.y;
+            this._move = 1;
             this.goto(this.x + x, this.y + y);
         }
+    };
+    const z = 0;
+    const now = '1XPXQAe';
+    const setSprite = (x, y) => {
+        g_dqMap[z][y][x] = now;
+    };
+    const deleteSprite = (x, y) => {
+        g_dqMap[z][y][x] = null;
     };
     const rpgen4 = await importAllSettled([
         'isKeyDown',
@@ -120,16 +151,9 @@
     ].map(v => `https://rpgen3.github.io/game/export/${v}.mjs`));
     const {isKeyDown, layer} = rpgen4,
           cv = new rpgen4.Canvas(footer).set(0.9, 0.7),
-          g_dqMap = new rpgen4.DQMap();
-    layer.set({
-        update: ctx => {
-            if(!g_dqMap.data) return;
-            const {info, define, data} = g_dqMap,
-                  {width, height, depth} = info,
-                  {x, y, w, h} = frame;
-            for(let i = 0; i < depth; i++) for(let j = 0; j < h; j++) for(let k = 0; k < w; k++) imgurMap.get(define[data[i][j + y]?.[k + x]])?.draw(ctx, x, y);
-        }
-    });
+          g_dqMap = new rpgen4.DQMap().set(15, 11).init();
+    layer.set(frame);
+    layer.set(player);
     let g_nowTime;
     const update = () => {
         g_nowTime = performance.now();
@@ -163,7 +187,7 @@
     }
     new SimpleText({
         text: {
-            toString: () => `座標(${x},${y})`
+            toString: () => `座標(${player.x},${player.y})`
         },
         size: 30,
         color: 'blue'
