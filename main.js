@@ -27,7 +27,11 @@
             rpgen3.imgur.load(id).then(img => {
                 this.img = img;
                 const {width, height} = img;
-                if(width === unit * 2) this.draw = new Anime(img).draw;
+                if(width === unit * 2) {
+                    const anime = new Anime(img);
+                    this.set= (...a) => anime.set(...a);
+                    this.draw = (...a) => anime.draw(...a);
+                }
             }).catch(() => {
                 this.img = sysImg[0];
             });
@@ -48,6 +52,9 @@
             this.anime = 500;
             this.direct = 'd';
         }
+        set(char){
+            this.direct = char;
+        }
         draw(ctx, x, y){
             const {img, anime, direct} = this,
                   index = 'wdsa'.indexOf(direct),
@@ -55,7 +62,7 @@
             ctx.drawImage(
                 img,
                 xx * unit, index * unit, unit, unit,
-                x * Sprite, y * Sprite, Sprite, Sprite
+                x * Sprite, y * Sprite, +Sprite, +Sprite
             );
         }
     }
@@ -77,6 +84,7 @@
         set(w, h){
             this.w = w;
             this.h = h;
+            return this;
         }
         update(ctx){
             if(!g_dqMap.data) return;
@@ -93,8 +101,9 @@
                   _xx = (_x < 0 ? 0 : _x > _ww ? _ww : _x) | 0,
                   _yy = (_y < 0 ? 0 : _y > _hh ? _hh : _y) | 0;
             for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
-                imgurMap.get(define[data[i][j + _yy]?.[k + _xx]])?.draw(ctx, k - subX, j - subY);
+                imgurMap.get(define[data[i][j]?.[k]])?.draw(ctx, k + subX, j + subY);
             }
+            g_debug = subX;
         }
     };
     const player = new class {
@@ -106,12 +115,25 @@
         dressUp(id){
             this.id = id;
             imgurMap.set(id);
+            return this;
         }
         update(ctx){
-            if(isKeyDown(['ArrowLeft','a'])) this.move(-1, 0);
-            else if(isKeyDown(['ArrowRight','d'])) this.move(1, 0);
-            else if(isKeyDown(['ArrowUp','w'])) this.move(0, -1);
-            else if(isKeyDown(['ArrowDown','s'])) this.move(0, 1);
+            if(isKeyDown(['ArrowLeft','a'])) {
+                this.move(-1, 0);
+                imgurMap.get(this.id).set('a');
+            }
+            else if(isKeyDown(['ArrowRight','d'])) {
+                this.move(1, 0);
+                imgurMap.get(this.id).set('d');
+            }
+            else if(isKeyDown(['ArrowUp','w'])) {
+                this.move(0, -1);
+                imgurMap.get(this.id).set('w');
+            }
+            else if(isKeyDown(['ArrowDown','s'])) {
+                this.move(0, 1);
+                imgurMap.get(this.id).set('s');
+            }
             const {x, y, _x, _y, time, _time} = this;
             let rate = 1;
             if(this._time){
@@ -121,11 +143,11 @@
                     this._time = null;
                 }
             }
-            this.subX = (x - _x) * rate;
-            this.subY = (y - _y) * rate;
-            this.nowX = x - this.subX;
-            this.nowY = y - this.subY;
-            //imgurMap.get(this.id).draw(ctx, this.nowX, this.nowY); 表示しなければセーフ
+            this.nowX = x - (x - _x) * rate;
+            this.nowY = y - (y - _y) * rate;
+            this.subX = x - this.nowX;
+            this.subY = y - this.nowY;
+            imgurMap.get(this.id).draw(ctx, this.nowX, this.nowY);
             if(isKeyDown(['z'])) setSprite(x, y);
             else if(isKeyDown(['x'])) deleteSprite(x, y);
         }
@@ -144,6 +166,7 @@
     };
     const z = 0;
     const now = '1XPXQAe';
+    imgurMap.set(now, now);
     const setSprite = (x, y) => {
         g_dqMap.data[z][y][x] = now;
     };
@@ -158,11 +181,11 @@
     ].map(v => `https://rpgen3.github.io/game/export/${v}.mjs`));
     const {isKeyDown, layer} = rpgen4,
           cv = new rpgen4.Canvas(footer).set(0.9, 0.7),
-          g_dqMap = new rpgen4.DQMap().set(15, 11, 3).init();
+          g_dqMap = new rpgen4.DQMap().set(30, 22, 3).init();
     g_dqMap.define = {[now]:now};
     window.g_dqMap = g_dqMap;
-    layer.set(frame);
-    layer.set(player);
+    layer.set(frame.set(15, 11));
+    layer.set(player.dressUp('fFrt63r'));
     let g_nowTime;
     const update = () => {
         g_nowTime = performance.now();
