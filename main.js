@@ -126,16 +126,18 @@
             this.timeIdx = (this.timeIdx + 1) % this.times.length;
         }
         update(ctx){
-            if(isKeyDown(['ArrowLeft','a'])) this.set('a').move(-1, 0);
-            else if(isKeyDown(['ArrowRight','d'])) this.set('d').move(1, 0);
-            else if(isKeyDown(['ArrowUp','w'])) this.set('w').move(0, -1);
-            else if(isKeyDown(['ArrowDown','s'])) this.set('s').move(0, 1);
+            const {x, y, _x, _y, time, _time} = this;
             if(isKeyDown(['z'])) setSprite(x, y);
             else if(isKeyDown(['x'])) deleteSprite(x, y);
             else if(isKeyDown(['f'])) this.speedUp();
-            const {x, y, _x, _y, time, _time} = this;
             let rate = 0;
-            if(this._time){
+            if(!this._time){
+                if(isKeyDown(['ArrowLeft','a'])) this.set('a').move(-1, 0);
+                else if(isKeyDown(['ArrowRight','d'])) this.set('d').move(1, 0);
+                else if(isKeyDown(['ArrowUp','w'])) this.set('w').move(0, -1);
+                else if(isKeyDown(['ArrowDown','s'])) this.set('s').move(0, 1);
+            }
+            else {
                 rate = 1 - (g_nowTime - _time) / this.times[this.timeIdx];
                 if(rate <= 0) {
                     rate = 0;
