@@ -27,11 +27,7 @@
             rpgen3.imgur.load(id).then(img => {
                 this.img = img;
                 const {width, height} = img;
-                if(width === unit * 2) {
-                    const anime = new Anime(img);
-                    this.set= (...a) => anime.set(...a);
-                    this.draw = (...a) => anime.draw(...a);
-                }
+                if(width === unit * 2) new Anime(this);
             }).catch(() => {
                 this.img = sysImg[0];
             });
@@ -47,10 +43,11 @@
         }
     }
     class Anime {
-        constructor(img){
-            this.img = img;
-            this.anime = 500;
-            this.direct = 'd';
+        constructor(that){
+            that.anime = 500;
+            that.direct = 'd';
+            that.set = this.set;
+            that.draw = this.draw;
         }
         set(char){
             this.direct = char;
@@ -62,7 +59,7 @@
             ctx.drawImage(
                 img,
                 xx * unit, index * unit, unit, unit,
-                x * Sprite, y * Sprite, +Sprite, +Sprite
+                x * Sprite, y * Sprite, Sprite, Sprite
             );
         }
     }
@@ -103,13 +100,15 @@
             for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
                 imgurMap.get(define[data[i][j]?.[k]])?.draw(ctx, k + subX, j + subY);
             }
-            g_debug = subX;
+            //g_debug = subX;
         }
     };
     const player = new class {
         constructor(){
             this.x = this.y = this._x = this._y = this.subX = this.subY = this.nowX = this.nowY = 0;
-            this.time = 300;
+            this.times = [300, 150, 50];
+            this.timeIdx = 0;
+            this.lastTime = 0;
             this._time = null;
         }
         dressUp(id){
@@ -117,39 +116,37 @@
             imgurMap.set(id);
             return this;
         }
+        set(char){
+            imgurMap.get(this.id).set(char);
+            return this;
+        }
+        speedUp(){
+            if(g_nowTime - this.lastTime < 1000) return;
+            this.lastTime = g_nowTime;
+            this.timeIdx = (this.timeIdx + 1) % this.times.length;
+        }
         update(ctx){
-            if(isKeyDown(['ArrowLeft','a'])) {
-                this.move(-1, 0);
-                imgurMap.get(this.id).set('a');
-            }
-            else if(isKeyDown(['ArrowRight','d'])) {
-                this.move(1, 0);
-                imgurMap.get(this.id).set('d');
-            }
-            else if(isKeyDown(['ArrowUp','w'])) {
-                this.move(0, -1);
-                imgurMap.get(this.id).set('w');
-            }
-            else if(isKeyDown(['ArrowDown','s'])) {
-                this.move(0, 1);
-                imgurMap.get(this.id).set('s');
-            }
+            if(isKeyDown(['ArrowLeft','a'])) this.set('a').move(-1, 0);
+            else if(isKeyDown(['ArrowRight','d'])) this.set('d').move(1, 0);
+            else if(isKeyDown(['ArrowUp','w'])) this.set('w').move(0, -1);
+            else if(isKeyDown(['ArrowDown','s'])) this.set('s').move(0, 1);
+            if(isKeyDown(['z'])) setSprite(x, y);
+            else if(isKeyDown(['x'])) deleteSprite(x, y);
+            else if(isKeyDown(['f'])) this.speedUp();
             const {x, y, _x, _y, time, _time} = this;
-            let rate = 1;
+            let rate = 0;
             if(this._time){
-                rate = 1 - (g_nowTime - _time) / this.time;
+                rate = 1 - (g_nowTime - _time) / this.times[this.timeIdx];
                 if(rate <= 0) {
                     rate = 0;
                     this._time = null;
                 }
             }
-            this.nowX = x - (x - _x) * rate;
-            this.nowY = y - (y - _y) * rate;
-            this.subX = x - this.nowX;
-            this.subY = y - this.nowY;
+            this.subX = (x - _x) * rate;
+            this.subY = (y - _y) * rate;
+            this.nowX = x - this.subX;
+            this.nowY = y - this.subY;
             imgurMap.get(this.id).draw(ctx, this.nowX, this.nowY);
-            if(isKeyDown(['z'])) setSprite(x, y);
-            else if(isKeyDown(['x'])) deleteSprite(x, y);
         }
         goto(x, y){
             const {width, height} = g_dqMap.info;
