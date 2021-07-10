@@ -1,5 +1,4 @@
 (async()=>{
-    let g_debug;
     const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
     await getScript('https://rpgen3.github.io/lib/lib/jquery-3.5.1.min.js');
     const rpgen3 = await importAll([
@@ -98,7 +97,6 @@
             for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
                 imgurMap.get(define[data[i][j + y]?.[k + x]])?.draw(ctx, k + _xx, j + _yy);
             }
-            g_debug = [_xx].join(' ');
         }
         _pivot(n){
             return (n / 2 | 0) + 1;
@@ -113,7 +111,7 @@
             switch(this._get3state(value, pivot, max)){
                 case -1: return value;
                 case 0: return pivot;
-                case 1: return value - max - pivot;
+                case 1: return value - (max - pivot);
             }
         }
         _switchF(value, pivot, max, next){
@@ -152,7 +150,7 @@
             return this;
         }
         speedUp(){
-            if(g_nowTime - this.lastTime < 1000) return;
+            if(g_nowTime - this.lastTime < 300) return;
             this.lastTime = g_nowTime;
             this.timeIdx = (this.timeIdx + 1) % this.times.length;
         }
@@ -210,7 +208,7 @@
         'layer'
     ].map(v => `https://rpgen3.github.io/game/export/${v}.mjs`));
     const {isKeyDown, layer} = rpgen4,
-          cv = new rpgen4.Canvas(footer).set(0.9, 0.7),
+          cv = new rpgen4.Canvas(footer).set(0.9, 0.9),
           g_dqMap = new rpgen4.DQMap().set(30, 22, 3).init();
     g_dqMap.define = {[now]:now};
     window.g_dqMap = g_dqMap;
@@ -252,14 +250,14 @@
         text: {
             toString: () => `座標(${player.x},${player.y})`
         },
-        size: 30,
+        size: unit,
         color: 'blue'
     });
     new SimpleText({
         text: {
-            toString: () => `debug=${g_debug}`
+            toString: () => `${player.times[0]/player.times[player.timeIdx]}倍速`
         },
-        size: 30,
+        size: unit,
         color: 'blue'
-    }).goto(0, 30);
+    }).goto(0, unit * 2);
 })();
