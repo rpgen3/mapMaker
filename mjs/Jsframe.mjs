@@ -17,7 +17,7 @@ export class Jsframe {
         deminimizeButton(frame);
         maximizeButton(frame);
         restoreButton(frame);
-        closeButton(frame);
+        //closeButton(frame);
         this.frame = frame;
     }
     get elm(){
