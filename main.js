@@ -90,13 +90,15 @@
                   [pivotW, pivotH] = this._pivotWH,
                   maxX = width - pivotW,
                   maxY = height - pivotH;
-            this.x = this._switchF(player.nowX, pivotW, maxX);
-            this.y = this._switchF(player.nowY, pivotH, maxY);
+            const [_x, _xx] = this._switchF(player.nowX, pivotW, maxX, player.x),
+                  [_y, _yy] = this._switchF(player.nowY, pivotH, maxY, player.y);
+            this.x = _x;
+            this.y = _y;
             const {x, y, w, h} = this;
             for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
-                imgurMap.get(define[data[i][j + y | 0]?.[k + x | 0]])?.draw(ctx, k - x, j - y);
+                imgurMap.get(define[data[i][j + y]?.[k + x]])?.draw(ctx, k + _xx, j + _yy);
             }
-            g_debug = this.x;
+            g_debug = [_xx].join(' ');
         }
         _pivot(n){
             return (n / 2 | 0) + 1;
@@ -114,11 +116,14 @@
                 case 1: return value - max - pivot;
             }
         }
-        _switchF(value, pivot, max){
+        _switchF(value, pivot, max, next){
             switch(this._get3state(value, pivot, max)){
-                case -1: return 0;
-                case 0: return value - pivot;
-                case 1: return max - pivot;
+                case -1: return [0, 0];
+                case 0: {
+                    const v = next - value;
+                    return [value - pivot | 0, v === -1 ? 0 : v > 0 ? v - 1 : v];
+                }
+                case 1: return [max - pivot, 0];
             }
         }
         calcPlayerXY(x, y){
@@ -172,6 +177,8 @@
             }
             this.nowX = x - (x - _x) * rate;
             this.nowY = y - (y - _y) * rate;
+        }
+        draw(ctx){
             imgurMap.get(this.id).draw(ctx, ...frame.calcPlayerXY(this.nowX, this.nowY));
         }
         goto(x, y){
@@ -207,8 +214,9 @@
           g_dqMap = new rpgen4.DQMap().set(30, 22, 3).init();
     g_dqMap.define = {[now]:now};
     window.g_dqMap = g_dqMap;
-    layer.set(frame.set(cv.w / Sprite | 0, cv.h / Sprite | 0));
     layer.set(player.dressUp('fFrt63r'));
+    layer.set(frame.set(cv.w / Sprite | 0, cv.h / Sprite | 0));
+    layer.set({update: ctx => player.draw(ctx)});
     let g_nowTime;
     const update = () => {
         g_nowTime = performance.now();
