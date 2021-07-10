@@ -26,6 +26,9 @@ export class Jsframe {
     set(x, y){
         return this.frame.setPosition(x, y);
     }
+    delete(){
+        this.frame.closeFrame();
+    }
 }
 const minimizeButton = frame => frame.on('minimizeButton', 'click', (_frame, evt) => {
     frame.hideFrameComponent('minimizeButton');
