@@ -86,15 +86,17 @@
         update(ctx){
             if(!g_dqMap.data) return;
             const {info, define, data} = g_dqMap,
-                  {width, height, depth} = info;
-            const [pivotW, pivotH] = this._pivotWH,
+                  {width, height, depth} = info,
+                  [pivotW, pivotH] = this._pivotWH,
                   maxX = width - pivotW,
                   maxY = height - pivotH;
-            this._switchF(player.x, pivotW, maxX);
+            this.x = this._switchF(player.nowX, pivotW, maxX);
+            this.y = this._switchF(player.nowY, pivotH, maxY);
+            const {x, y, w, h} = this;
             for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
-                imgurMap.get(define[data[i][j]?.[k]])?.draw(ctx, k, j);
+                imgurMap.get(define[data[i][j + y | 0]?.[k + x | 0]])?.draw(ctx, k - x, j - y);
             }
-            g_debug = subX;
+            g_debug = this.x;
         }
         _pivot(n){
             return (n / 2 | 0) + 1;
@@ -114,9 +116,9 @@
         }
         _switchF(value, pivot, max){
             switch(this._get3state(value, pivot, max)){
-                case -1: return value;
-                case 0: return pivot;
-                case 1: return value - max - pivot;
+                case -1: return 0;
+                case 0: return value - pivot;
+                case 1: return max - pivot;
             }
         }
         calcPlayerXY(x, y){
@@ -129,7 +131,7 @@
     };
     const player = new class {
         constructor(){
-            this.x = this.y = this._x = this._y = this.subX = this.subY = this.nowX = this.nowY = 0;
+            this.x = this.y = this._x = this._y = this.nowX = this.nowY = 0;
             this.times = [200, 150, 100];
             this.timeIdx = 0;
             this.lastTime = 0;
@@ -168,10 +170,8 @@
                     this._time = null;
                 }
             }
-            this.subX = (x - _x) * rate;
-            this.subY = (y - _y) * rate;
-            this.nowX = x - this.subX;
-            this.nowY = y - this.subY;
+            this.nowX = x - (x - _x) * rate;
+            this.nowY = y - (y - _y) * rate;
             imgurMap.get(this.id).draw(ctx, ...frame.calcPlayerXY(this.nowX, this.nowY));
         }
         goto(x, y){
