@@ -76,7 +76,7 @@
     };
     const frame = new class {
         constructor(){
-            this.x = this.y = 0;
+            this.x = this.y = this._x = this._y = 0;
         }
         set(w, h){
             this.w = w;
@@ -88,8 +88,8 @@
             const {info, define, data} = g_dqMap,
                   {width, height, depth} = info,
                   {x, y, w, h} = this,
-                  _w = (w % 2 | 0) - 1,
-                  _h = (h % 2 | 0) - 1,
+                  _w = (w / 2 | 0) - 1,
+                  _h = (h / 2 | 0) - 1,
                   {subX, subY, nowX, nowY} = player,
                   _x = nowX - _w,
                   _y = nowY - _h,
@@ -100,13 +100,26 @@
             for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
                 imgurMap.get(define[data[i][j]?.[k]])?.draw(ctx, k + subX, j + subY);
             }
-            //g_debug = subX;
+            g_debug = subX;
+        }
+        calcPlayerXY(x, y){
+            const {width, height} = g_dqMap.info,
+                  w = (this.w / 2 | 0) + 1,
+                  h = (this.h / 2 | 0) + 1,
+                  maxX = width - w,
+                  maxY = height - h;
+            let xx = x, yy = y;
+            if(x > w && x < maxX) xx = w;
+            else if(x >= maxX) xx -= maxX - w;
+            if(y > h && y < maxY) yy = h;
+            else if(y >= maxY) yy -= maxY - h;
+            return [xx, yy];
         }
     };
     const player = new class {
         constructor(){
             this.x = this.y = this._x = this._y = this.subX = this.subY = this.nowX = this.nowY = 0;
-            this.times = [300, 150, 50];
+            this.times = [200, 150, 100];
             this.timeIdx = 0;
             this.lastTime = 0;
             this._time = null;
@@ -148,7 +161,7 @@
             this.subY = (y - _y) * rate;
             this.nowX = x - this.subX;
             this.nowY = y - this.subY;
-            imgurMap.get(this.id).draw(ctx, this.nowX, this.nowY);
+            imgurMap.get(this.id).draw(ctx, ...frame.calcPlayerXY(this.nowX, this.nowY));
         }
         goto(x, y){
             const {width, height} = g_dqMap.info;
@@ -183,7 +196,7 @@
           g_dqMap = new rpgen4.DQMap().set(30, 22, 3).init();
     g_dqMap.define = {[now]:now};
     window.g_dqMap = g_dqMap;
-    layer.set(frame.set(15, 11));
+    layer.set(frame.set(cv.w / Sprite | 0, cv.h / Sprite | 0));
     layer.set(player.dressUp('fFrt63r'));
     let g_nowTime;
     const update = () => {
