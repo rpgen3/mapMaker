@@ -76,6 +76,6 @@ const restoreButton = frame => frame.on('restoreButton', 'click', (_frame, evt) 
     _frame.showFrameComponent('maximizeButton');
     _frame.hideFrameComponent('restoreButton');
 });
-const closeButton = frame => frame.on('closeButton', 'click', (_frame, evt) => {
+/*const closeButton = frame => frame.on('closeButton', 'click', (_frame, evt) => {
     _frame.closeFrame();
-});
+});*/
