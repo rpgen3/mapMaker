@@ -86,34 +86,45 @@
         update(ctx){
             if(!g_dqMap.data) return;
             const {info, define, data} = g_dqMap,
-                  {width, height, depth} = info,
-                  {x, y, w, h} = this,
-                  _w = (w / 2 | 0) - 1,
-                  _h = (h / 2 | 0) - 1,
-                  {subX, subY, nowX, nowY} = player,
-                  _x = nowX - _w,
-                  _y = nowY - _h,
-                  _ww = width - w - 1,
-                  _hh = height - h - 1,
-                  _xx = (_x < 0 ? 0 : _x > _ww ? _ww : _x) | 0,
-                  _yy = (_y < 0 ? 0 : _y > _hh ? _hh : _y) | 0;
+                  {width, height, depth} = info;
+            const [pivotW, pivotH] = this._pivotWH,
+                  maxX = width - pivotW,
+                  maxY = height - pivotH;
+            this._switchF(player.x, pivotW, maxX);
             for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
-                imgurMap.get(define[data[i][j]?.[k]])?.draw(ctx, k + subX, j + subY);
+                imgurMap.get(define[data[i][j]?.[k]])?.draw(ctx, k, j);
             }
             g_debug = subX;
         }
+        _pivot(n){
+            return (n / 2 | 0) + 1;
+        }
+        get _pivotWH(){
+            return [this._pivot(this.w), this._pivot(this.h)];
+        }
+        _get3state(value, pivot, max){
+            return value > pivot && value < max ? 0 : value <= pivot ? -1 : 1;
+        }
+        _switchP(value, pivot, max){
+            switch(this._get3state(value, pivot, max)){
+                case -1: return value;
+                case 0: return pivot;
+                case 1: return value - max - pivot;
+            }
+        }
+        _switchF(value, pivot, max){
+            switch(this._get3state(value, pivot, max)){
+                case -1: return value;
+                case 0: return pivot;
+                case 1: return value - max - pivot;
+            }
+        }
         calcPlayerXY(x, y){
             const {width, height} = g_dqMap.info,
-                  w = (this.w / 2 | 0) + 1,
-                  h = (this.h / 2 | 0) + 1,
-                  maxX = width - w,
-                  maxY = height - h;
-            let xx = x, yy = y;
-            if(x > w && x < maxX) xx = w;
-            else if(x >= maxX) xx -= maxX - w;
-            if(y > h && y < maxY) yy = h;
-            else if(y >= maxY) yy -= maxY - h;
-            return [xx, yy];
+                  [pivotW, pivotH] = this._pivotWH,
+                  maxX = width - pivotW,
+                  maxY = height - pivotH;
+            return [this._switchP(x, pivotW, maxX), this._switchP(y, pivotH, maxY)];
         }
     };
     const player = new class {
