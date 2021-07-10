@@ -1,4 +1,5 @@
 (async()=>{
+    let g_debug;
     const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
     await getScript('https://rpgen3.github.io/lib/lib/jquery-3.5.1.min.js');
     const rpgen3 = await importAll([
@@ -105,7 +106,7 @@
             return [this._pivot(this.w), this._pivot(this.h)];
         }
         _get3state(value, pivot, max){
-            return value > pivot && value < max ? 0 : value <= pivot ? -1 : 1;
+            return max < pivot || value <= pivot ? -1 : value > pivot && value < max ? 0 : 1;
         }
         _switchP(value, pivot, max){
             switch(this._get3state(value, pivot, max)){
@@ -260,4 +261,11 @@
         size: unit,
         color: 'blue'
     }).goto(0, unit * 2);
+    new SimpleText({
+        text: {
+            toString: () => `debug=${g_debug}`
+        },
+        size: unit,
+        color: 'blue'
+    }).goto(0, unit * 3);
 })();
