@@ -2,8 +2,7 @@ import {getScript} from 'https://rpgen3.github.io/mylib/export/import.mjs';
 await getScript('https://riversun.github.io/jsframe/jsframe.js');
 export class Jsframe {
     constructor(title){
-        const jsFrame = new JSFrame(),
-              frame = jsFrame.create({
+        const frame = new JSFrame().create({
             title,
             left: 20, top: 20, width: 320, height: 220,
             appearanceName: 'redstone',
