@@ -31,8 +31,9 @@ export class Jsframe {
     }
 }
 const minimizeButton = frame => frame.on('minimizeButton', 'click', (_frame, evt) => {
+    frame.requestFocus();
     frame.hideFrameComponent('minimizeButton');
-    frame.showFrameComponent('deminimizeButton');x
+    frame.showFrameComponent('deminimizeButton');
     const force = true;
     _frame.extra.__restore_info = {
         org_left: _frame.getLeft(),
@@ -44,12 +45,14 @@ const minimizeButton = frame => frame.on('minimizeButton', 'click', (_frame, evt
     _frame.setResizable(false);
 });
 const deminimizeButton = frame => frame.on('deminimizeButton', 'click', (_frame, evt) => {
+    frame.requestFocus();
     _frame.showFrameComponent('minimizeButton');
     _frame.hideFrameComponent('deminimizeButton');
     const force = true;
     _frame.setSize(_frame.extra.__restore_info.org_width, _frame.extra.__restore_info.org_height, force);
 });
 const maximizeButton = frame => frame.on('maximizeButton', 'click', (_frame, evt) => {
+    frame.requestFocus();
     _frame.extra.__restore_info = {
         org_left: _frame.getLeft(),
         org_top: _frame.getTop(),
@@ -64,6 +67,7 @@ const maximizeButton = frame => frame.on('maximizeButton', 'click', (_frame, evt
     frame.setResizable(false);
 });
 const restoreButton = frame => frame.on('restoreButton', 'click', (_frame, evt) => {
+    frame.requestFocus();
     frame.setMovable(true);
     frame.setResizable(true);
     _frame.setPosition(_frame.extra.__restore_info.org_left, _frame.extra.__restore_info.org_top);
