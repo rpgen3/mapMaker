@@ -7,7 +7,7 @@ export class Jsframe {
             left: 20, top: 20, width: 320, height: 220,
             appearanceName: 'redstone',
             style: {
-                backgroundColor: 'rgba(255, 255, 255, 0.)',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 overflow:'auto'
             },
             movable: true,
