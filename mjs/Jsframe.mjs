@@ -7,34 +7,17 @@ export class Jsframe {
             left: 20, top: 20, width: 320, height: 220,
             appearanceName: 'redstone',
             style: {
-                backgroundColor: 'rgba(255,255,255,0.5)',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
                 overflow:'auto'
             },
             movable: true,
             resizable: true
         }).show();
-        frame.on('maximizeButton', 'click', (_frame, evt) => {
-            _frame.extra.__restore_info = {
-                org_left: _frame.getLeft(),
-                org_top: _frame.getTop(),
-                org_width: _frame.getWidth(),
-                org_height: _frame.getHeight()
-            };
-            frame.hideFrameComponent('maximizeButton');
-            frame.showFrameComponent('restoreButton');
-            frame.setPosition(0, 0);
-            frame.setSize(window.innerWidth - 2, window.innerHeight - 2, true);
-            frame.setMovable(false);
-            frame.setResizable(false);
-        });
-        frame.on('restoreButton', 'click', (_frame, evt) => {
-            frame.setMovable(true);
-            frame.setResizable(true);
-            _frame.setPosition(_frame.extra.__restore_info.org_left, _frame.extra.__restore_info.org_top);
-            _frame.setSize(_frame.extra.__restore_info.org_width, _frame.extra.__restore_info.org_height, true);
-            _frame.showFrameComponent('maximizeButton');
-            _frame.hideFrameComponent('restoreButton');
-        });
+        minimizeButton(frame);
+        deminimizeButton(frame);
+        maximizeButton(frame);
+        restoreButton(frame);
+        closeButton(frame);
         this.frame = frame;
     }
     get elm(){
@@ -44,3 +27,48 @@ export class Jsframe {
         return this.frame.setPosition(x, y);
     }
 }
+const minimizeButton = frame => frame.on('minimizeButton', 'click', (_frame, evt) => {
+    frame.hideFrameComponent('minimizeButton');
+    frame.showFrameComponent('deminimizeButton');x
+    const force = true;
+    _frame.extra.__restore_info = {
+        org_left: _frame.getLeft(),
+        org_top: _frame.getTop(),
+        org_width: _frame.getWidth(),
+        org_height: _frame.getHeight()
+    };
+    _frame.setSize(_frame.getWidth(), 30, force);
+    _frame.setResizable(false);
+});
+const deminimizeButton = frame => frame.on('deminimizeButton', 'click', (_frame, evt) => {
+    _frame.showFrameComponent('minimizeButton');
+    _frame.hideFrameComponent('deminimizeButton');
+    const force = true;
+    _frame.setSize(_frame.extra.__restore_info.org_width, _frame.extra.__restore_info.org_height, force);
+});
+const maximizeButton = frame => frame.on('maximizeButton', 'click', (_frame, evt) => {
+    _frame.extra.__restore_info = {
+        org_left: _frame.getLeft(),
+        org_top: _frame.getTop(),
+        org_width: _frame.getWidth(),
+        org_height: _frame.getHeight()
+    };
+    frame.hideFrameComponent('maximizeButton');
+    frame.showFrameComponent('restoreButton');
+    frame.setPosition(0, 0);
+    frame.setSize(window.innerWidth - 2, window.innerHeight - 2, true);
+    frame.setMovable(false);
+    frame.setResizable(false);
+});
+const restoreButton = frame => frame.on('restoreButton', 'click', (_frame, evt) => {
+    frame.setMovable(true);
+    frame.setResizable(true);
+    _frame.setPosition(_frame.extra.__restore_info.org_left, _frame.extra.__restore_info.org_top);
+    const force = true;
+    _frame.setSize(_frame.extra.__restore_info.org_width, _frame.extra.__restore_info.org_height, force);
+    _frame.showFrameComponent('maximizeButton');
+    _frame.hideFrameComponent('restoreButton');
+});
+const closeButton = frame => frame.on('closeButton', 'click', (_frame, evt) => {
+    _frame.closeFrame();
+});
