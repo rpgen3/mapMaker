@@ -111,8 +111,9 @@
               {define} = dqMap;
         for(const k in define) makeTr(k).appendTo(tbody);
         $('<button>').appendTo(elm).addClass('plusBtn').on('click', async () => {
-            const win = Win.make('新規追加'),
+            const win = Win.make('imgurIDを新規追加'),
                   {elm} = win;
+            $('<div>').appendTo(elm).text('複数入力も可');
             const bool = rpgen3.addInputBool(elm,{
                 label: 'URLを入力する'
             });
