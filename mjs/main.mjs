@@ -1,5 +1,6 @@
 export {cv, dqMap, update, zMap};
 const zMap = new Map;
+zMap.set('order', []);
 let g_debug;
 const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
 await getScript('https://rpgen3.github.io/lib/lib/jquery-3.5.1.min.js');
@@ -88,8 +89,8 @@ const frame = new class {
         this.y = _y;
         const {x, y, w, h} = this;
         let i = 0;
-        for(const [k,v] of zMap) {
-            if(!v) continue;
+        for(const idx of zMap.get('order')) {
+            if(!zMap.get(idx)) continue;
             for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
                 imgurMap.get(define[data[i][j + y]?.[k + x]])?.draw(ctx, k + _xx, j + _yy);
             }
