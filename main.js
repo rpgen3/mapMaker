@@ -1,4 +1,5 @@
 (async()=>{
+    var $ = 1;
     const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
     await Promise.all([
         'https://code.jquery.com/git/jquery-git.slim.min.js',
@@ -21,7 +22,7 @@
         'Jsframe',
         'main'
     ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
-    const {cv, dqMap, update, zMap, Jsframe} = rpgen5;
+    const {Jsframe, cv, dqMap, update, zMap, imgurMap} = rpgen5;
     const init = new class {
         constructor(){
             this.cv = $(cv.ctx.canvas);
@@ -98,24 +99,41 @@
     const base62 = new rpgen3.BaseN('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz');
     const openWindowDefine = () => {
         const win = Win.make('定義リスト'),
-              {elm} = win;
-        const table = $('<table>').appendTo(elm);
-        makeThead(['id', 'imgurID', '画像', '非表示', '削除']).appendTo(table);
-        /*const tbody = $('<tbody>').appendTo(table);
-        for(const z of zArr) {
-            const tr = $('<tr>').appendTo(thead);
-        }
-        $('<button>').appendTo(elm).addClass('plusBtn').on('click', addLayer);
-        tbody.on('sortstop',()=>{
-            zArray.empty();
-            tbody.each((i,e)=>zArr.push(Number($(e).prop('value'))));
-        });*/
-    };
-    const makeThead = arr => {
-        const thead = $('<thead>'),
+              {elm} = win,
+              table = $('<table>').appendTo(elm),
+              thead = $('<thead>').appendTo(table),
               tr = $('<tr>').appendTo(thead);
-        for(const str of arr) $('<th>').appendTo(tr).text(str);
-        return thead;
+        for(const str of [
+            'id', 'imgurID', '画像', '削除'
+        ]) $('<th>').appendTo(tr).text(str);
+        const tbody = $('<tbody>').appendTo(table);
+        for(const k in dqMap.define) makeTr(k).appendTo(tbody);
+        $('<button>').appendTo(elm).addClass('plusBtn').on('click', () => addLayer().appendTo(tbody));
+    };
+    const makeTr = k => {
+        const tr = $('tr'),
+              id = dqMap.define[k];
+        $('<th>').appendTo(tr).text(k);
+        $('<td>').appendTo(tr).text(id);
+        $('<td>').appendTo(tr).text(makeCanvas(id));
+        $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
+            delete dqMap.define[k];
+            tr.remove();
+        });
+        return tr;
+    };
+    const makeCanvas = id => {
+        const cv = $('<canvas>'),
+              ctx = cv.get(0).getContext('2d'),
+              obj = imgurMap.set(id);
+        drawCanvas(ctx, obj.img);
+        obj.promise.then(() => drawCanvas(ctx, obj.img));
+        return cv;
+    };
+    const drawCanvas = (ctx, img) => {
+        const unit = 16;
+        if(img.width === unit) ctx.drawImage(img, 0, 0, unit, unit);
+        else ctx.drawImage(img, 0, unit * 2, unit, unit, 0, 0, unit, unit);
     };
     const addInputCell = () => {
         const newId = base62.encode(Math.max(...Object.keys(dqMap.define).map(v => base62.decode(v))) + 1);
@@ -128,31 +146,34 @@
             ul.children().each((i,e)=>arr.push(Number($(e).prop('z'))));
             zMap.set('order', arr);
         });
-        for(const z of zMap.keys()) {
-            if(isNaN(z)) continue;
-            const li = $('<li>').appendTo(ul).text(`レイヤー${z}`).prop({z})
-            .append($('<button>').text('非表示').on('click',()=>{
-                if(zMap.get(z)){
-                    zMap.set(z, false);
-                    li.addClass('off').removeClass('on');
-                }
-                else {
-                    zMap.set(z, true);
-                    li.addClass('on').removeClass('off');
-                }
-            }))
-            .append($('<button>').text('削除').on('click',()=>{
-                const arr = zMap.delete(z).get('order'),
-                      idx = arr.indexOf(z);
-                if(z !== -1) arr.splice(idx);
-                li.remove();
-            }));
-        }
+        for(const z of zMap.keys()) if(!isNaN(z)) makeLi(z).appendTo(ul);
+        $('<button>').appendTo(elm).addClass('plusBtn').on('click', () => addLayer().appendTo(ul));
+    };
+    const makeLi = z => {
+        const li = $('<li>').text(`レイヤー${z}`).prop({z});
+        $('<button>').appendTo(li).text('非表示').on('click',()=>{
+            if(zMap.get(z)){
+                zMap.set(z, false);
+                li.addClass('off').removeClass('on');
+            }
+            else {
+                zMap.set(z, true);
+                li.addClass('on').removeClass('off');
+            }
+        });
+        $('<button>').appendTo(li).text('削除').on('click',()=>{
+            const arr = zMap.delete(z).get('order'),
+                  idx = arr.indexOf(z);
+            if(z !== -1) arr.splice(idx);
+            li.remove();
+        });
+        return li;
     };
     const addLayer = () =>{
         dqMap.data.push(dqMap.make());
         const z = dqMap.info.depth++;
         zMap.set(z, true).get('order').push(z);
+        return makeLi(z);
     };
     const openWindowPalette = () => {
         const win = Win.make('パレット選択'),
