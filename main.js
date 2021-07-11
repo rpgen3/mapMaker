@@ -16,7 +16,8 @@
     const rpgen3 = await importAll([
         'input',
         'baseN',
-        'imgur'
+        'imgur',
+        'url'
     ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
     const rpgen5 = await importAll([
         'Jsframe',
@@ -106,9 +107,34 @@
         for(const str of [
             'id', 'imgurID', '画像', '削除'
         ]) $('<th>').appendTo(tr).text(str);
-        const tbody = $('<tbody>').appendTo(table);
-        for(const k in dqMap.define) makeTr(k).appendTo(tbody);
-        $('<button>').appendTo(elm).addClass('plusBtn').on('click', () => addLayer().appendTo(tbody));
+        const tbody = $('<tbody>').appendTo(table),
+              {define} = dqMap;
+        for(const k in define) makeTr(k).appendTo(tbody);
+        $('<button>').appendTo(elm).addClass('plusBtn').on('click', async () => {
+            const win = Win.make('新規追加'),
+                  {elm} = win;
+            const bool = rpgen3.addInputBool(elm,{
+                label: 'URLを入力する'
+            });
+            const input = rpgen3.addInputStr(elm,{
+                label: '入力欄から',
+                textarea: true
+            });
+            await new Promise(resolve => $('<button>').appendTo(elm).text('決定').on('click', resolve));
+            const arr = bool ? rpgen3.findURL(input()).filter(v => rpgen3.getDomain(v)[0] === 'imgur')
+            .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.')))
+            : input().match(/[0-9A-Za-z]+/g);
+            if(!arr) return;
+            const first = Math.max(...Object.keys(define).map(v => base62.decode(v))) + 1;
+            let i = 0;
+            for(const v of arr){
+                const k = base62.encode(first + i);
+                if(k in define) continue;
+                define[k] = v;
+                makeTr(k).appendTo(tbody);
+                i++;
+            }
+        });
     };
     const makeTr = k => {
         const tr = $('tr'),
@@ -135,9 +161,6 @@
         if(img.width === unit) ctx.drawImage(img, 0, 0, unit, unit);
         else ctx.drawImage(img, 0, unit * 2, unit, unit, 0, 0, unit, unit);
     };
-    const addInputCell = () => {
-        const newId = base62.encode(Math.max(...Object.keys(dqMap.define).map(v => base62.decode(v))) + 1);
-    };
     const openWindowLayer = () => {
         const win = Win.make('レイヤー操作'),
               {elm} = win;
@@ -147,7 +170,12 @@
             zMap.set('order', arr);
         });
         for(const z of zMap.keys()) if(!isNaN(z)) makeLi(z).appendTo(ul);
-        $('<button>').appendTo(elm).addClass('plusBtn').on('click', () => addLayer().appendTo(ul));
+        $('<button>').appendTo(elm).addClass('plusBtn').on('click', () => {
+            dqMap.data.push(dqMap.make());
+            const z = dqMap.info.depth++;
+            zMap.set(z, true).get('order').push(z);
+            makeLi(z).appendTo(ul);
+        });
     };
     const makeLi = z => {
         const li = $('<li>').text(`レイヤー${z}`).prop({z});
@@ -168,12 +196,6 @@
             li.remove();
         });
         return li;
-    };
-    const addLayer = () =>{
-        dqMap.data.push(dqMap.make());
-        const z = dqMap.info.depth++;
-        zMap.set(z, true).get('order').push(z);
-        return makeLi(z);
     };
     const openWindowPalette = () => {
         const win = Win.make('パレット選択'),
