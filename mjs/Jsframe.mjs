@@ -17,7 +17,6 @@ export class Jsframe {
         deminimizeButton(frame);
         maximizeButton(frame);
         restoreButton(frame);
-        closeButton(frame);
         this.frame = frame;
     }
     get elm(){
@@ -30,7 +29,7 @@ export class Jsframe {
         return this.frame.setPosition(x, y);
     }
     delete(){
-        this.frame.closeFrame();
+        if(this.exist) this.frame.closeFrame();
     }
 }
 const minimizeButton = frame => frame.on('minimizeButton', 'click', (_frame, evt) => {
@@ -78,7 +77,4 @@ const restoreButton = frame => frame.on('restoreButton', 'click', (_frame, evt) 
     _frame.setSize(_frame.extra.__restore_info.org_width, _frame.extra.__restore_info.org_height, force);
     _frame.showFrameComponent('maximizeButton');
     _frame.hideFrameComponent('restoreButton');
-});
-const closeButton = frame => frame.on('closeButton', 'click', (_frame, evt) => {
-    if(this.exist) _frame.closeFrame();
 });
