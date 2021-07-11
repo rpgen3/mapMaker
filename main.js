@@ -47,13 +47,14 @@
             this.arr = [];
         }
         make(title){
+            if(this.arr.some(([win, ttl]) => ttl === title && win.exist)) return false;
             const win = new rpgen5.Jsframe(title);
-            this.arr.push(win);
+            this.arr.push([win, title]);
             return win;
         }
         delete(){
             const {arr} = this;
-            while(arr.length) arr.pop().delete();
+            while(arr.length) arr.pop()[0].delete();
         }
     };
     const addInputNum = (parent, label, value) => {
@@ -64,8 +65,9 @@
         return () => Number(a());
     };
     const openWindowInit = () => {
-        const win = Win.make('テキストファイルから読み込む'),
-              {elm} = win,
+        const win = Win.make('パラメータを設定して初期化');
+        if(!win) return;
+        const {elm} = win,
               w = addInputNum(elm, 'width', 50),
               h = addInputNum(elm, 'height', 50),
               d = addInputNum(elm, 'depth', 3);
@@ -77,8 +79,9 @@
         init.main();
     };
     const openWindowLoad = () => {
-        const win = Win.make('テキストファイルから読み込む'),
-              {elm} = win;
+        const win = Win.make('セーブデータを読み込む');
+        if(!win) return;
+        const {elm} = win;
         $('<input>').appendTo(elm).prop({
             type: 'file',
             accept: '.txt'
@@ -98,8 +101,9 @@
     };
     const base62 = new rpgen3.BaseN('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz');
     const openWindowDefine = () => {
-        const win = Win.make('定義リスト'),
-              {elm} = win,
+        const win = Win.make('定義リスト');
+        if(!win) return;
+        const {elm} = win,
               table = $('<table>').appendTo(elm),
               thead = $('<thead>').appendTo(table),
               tr = $('<tr>').appendTo(thead);
@@ -110,8 +114,9 @@
               {define} = dqMap;
         for(const k in define) makeTr(k).appendTo(tbody);
         $('<button>').appendTo(elm).addClass('plusBtn').on('click', async () => {
-            const win = Win.make('imgurIDを新規追加'),
-                  {elm} = win;
+            const win = Win.make('imgurIDを新規追加');
+            if(!win) return;
+            const {elm} = win;
             $('<div>').appendTo(elm).text('複数入力も可');
             const bool = rpgen3.addInputBool(elm,{
                 label: 'URLを入力する'
@@ -162,8 +167,9 @@
         else ctx.drawImage(img, 0, unit * 2, unit, unit, 0, 0, unit, unit);
     };
     const openWindowLayer = () => {
-        const win = Win.make('レイヤー操作'),
-              {elm} = win;
+        const win = Win.make('レイヤー操作');
+        if(!win) return;
+        const {elm} = win;
         const ul = $('<ul>').appendTo(elm).on('sortstop',()=>{
             const arr = [];
             ul.children().each((i,e)=>arr.push(Number($(e).prop('z'))));
@@ -198,7 +204,29 @@
         return li;
     };
     const openWindowPalette = () => {
-        const win = Win.make('パレット選択'),
-              {elm} = win;
+        const win = Win.make('パレット選択');
+        if(!win) return;
+        const {elm} = win;
     };
+    const openWindowAll = () =>{
+        const win = Win.make('コマンド一覧');
+        if(!win) return;
+        const {elm} = win;
+        [
+            [openWindowInit, '初期化'],
+            [openWindowLoad, 'ロード'],
+            [openWindowDefine, '定義リスト'],
+            [openWindowLayer, 'レイヤー操作'],
+            [openWindowPalette, 'パレット選択'],
+        ].map(([func, ttl]) => $('<button>').appendTo(win).text(ttl).on('click', func));
+    };
+    $(window).on('keydown',({key})=>{
+        if(!init.falg) return;
+        switch(key){
+            case '1': return openWindowAll();
+            case '2': return openWindowDefine();
+            case '3': return openWindowLayer();
+            case '4': return openWindowPalette();
+        }
+    });
 })();
