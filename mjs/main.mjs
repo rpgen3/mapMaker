@@ -1,3 +1,4 @@
+export {cv, dqMap, update};
 let g_debug;
 const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
 await getScript('https://rpgen3.github.io/lib/lib/jquery-3.5.1.min.js');
@@ -252,4 +253,3 @@ new SimpleText({
     size: unit,
     color: 'blue'
 }).goto(0, unit * 3);
-export {cv, dqMap, update};
