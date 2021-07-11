@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap};
+export {cv, dqMap, update, zMap, imgurMap};
 const zMap = new Map;
 let g_debug;
 const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
