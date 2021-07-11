@@ -18,8 +18,7 @@ class Sprite {
         this.img = sysImg[1];
         this.promise = rpgen3.imgur.load(id).then(img => {
             this.img = img;
-            const {width, height} = img;
-            if(width === unit * 2) new Anime(this);
+            if(img.width !== unit) new Anime(this);
         }).catch(() => {
             this.img = sysImg[0];
         });
