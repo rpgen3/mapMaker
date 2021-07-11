@@ -61,6 +61,7 @@ const imgurMap = new class {
     }
     set(id){
         if(!this.m.has(id)) this.m.set(id, new Sprite(id));
+        return this.m.get(id);
     }
     get(id){
         return this.m.get(id);
