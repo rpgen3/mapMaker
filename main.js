@@ -117,7 +117,7 @@
                 label: 'URLを入力する'
             });
             const input = rpgen3.addInputStr(elm,{
-                label: '入力欄から',
+                label: '入力',
                 textarea: true
             });
             await new Promise(resolve => $('<button>').appendTo(elm).text('決定').on('click', resolve));
