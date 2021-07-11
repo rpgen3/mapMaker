@@ -1,5 +1,4 @@
 (async()=>{
-    var $ = 1;
     const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
     await Promise.all([
         'https://code.jquery.com/git/jquery-git.slim.min.js',
