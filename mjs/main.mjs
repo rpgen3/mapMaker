@@ -1,4 +1,5 @@
-export {cv, dqMap, update};
+export {cv, dqMap, update, zArr};
+const zArr = [];
 let g_debug;
 const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
 await getScript('https://rpgen3.github.io/lib/lib/jquery-3.5.1.min.js');
@@ -86,7 +87,7 @@ const frame = new class {
         this.x = _x;
         this.y = _y;
         const {x, y, w, h} = this;
-        for(let i = 0; i < depth; i++) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
+        for(const i of zArr) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
             imgurMap.get(define[data[i][j + y]?.[k + x]])?.draw(ctx, k + _xx, j + _yy);
         }
     }
