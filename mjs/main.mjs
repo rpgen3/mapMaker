@@ -16,7 +16,7 @@ let zoom = 3;
 class Sprite {
     constructor(id){
         this.img = sysImg[1];
-        rpgen3.imgur.load(id).then(img => {
+        this.promise = rpgen3.imgur.load(id).then(img => {
             this.img = img;
             const {width, height} = img;
             if(width === unit * 2) new Anime(this);
