@@ -17,11 +17,14 @@ export class Jsframe {
         deminimizeButton(frame);
         maximizeButton(frame);
         restoreButton(frame);
-        //closeButton(frame);
+        closeButton(frame);
         this.frame = frame;
     }
     get elm(){
         return this.frame.dframe;
+    }
+    get exist(){
+        return Boolean(this.frame.parentCanvas);
     }
     set(x, y){
         return this.frame.setPosition(x, y);
@@ -76,6 +79,6 @@ const restoreButton = frame => frame.on('restoreButton', 'click', (_frame, evt) 
     _frame.showFrameComponent('maximizeButton');
     _frame.hideFrameComponent('restoreButton');
 });
-/*const closeButton = frame => frame.on('closeButton', 'click', (_frame, evt) => {
-    _frame.closeFrame();
-});*/
+const closeButton = frame => frame.on('closeButton', 'click', (_frame, evt) => {
+    if(this.exist) _frame.closeFrame();
+});
