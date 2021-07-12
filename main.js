@@ -179,7 +179,7 @@
               id = dqMap.define.get(k);
         $('<th>').appendTo(tr).text(k);
         $('<td>').appendTo(tr).text(id);
-        $('<td>').appendTo(tr).text(makeCanvas(id));
+        makeCanvas(id).appendTo(('<td>').appendTo(tr));
         $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
             dqMap.define.delete(k);
             tr.remove();
