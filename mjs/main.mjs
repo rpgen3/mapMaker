@@ -91,7 +91,7 @@ const frame = new class {
         for(const idx of zMap.get('order')) {
             if(!zMap.get(idx)) continue;
             for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) {
-                imgurMap.get(define[data[i][j + y]?.[k + x]])?.draw(ctx, k + _xx, j + _yy);
+                imgurMap.get(define.get(data[i][j + y]?.[k + x]))?.draw(ctx, k + _xx, j + _yy);
             }
             i++;
         }
