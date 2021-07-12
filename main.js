@@ -14,7 +14,6 @@
           footer = $('<div>').appendTo(html);
     const rpgen3 = await importAll([
         'input',
-        'baseN',
         'imgur',
         'url',
         'util'
@@ -119,7 +118,6 @@
             type: 'text/plain'
         }))
     }).get(0).click();
-    const base62 = new rpgen3.BaseN('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz');
     const openWindowDefine = () => {
         const win = Win.make('定義リスト');
         if(!win) return;
@@ -132,7 +130,7 @@
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table),
               {define} = dqMap;
-        for(const k in define) makeTr(k).appendTo(tbody);
+        for(const k of define.keys) makeTr(k).appendTo(tbody);
         $('<button>').appendTo(elm).addClass('plusBtn').on('click', async () => {
             const win = Win.make('imgurIDを新規追加');
             if(!win) return;
@@ -150,12 +148,11 @@
             const arr = bool ? rpgen3.findURL(input()).filter(v => rpgen3.getDomain(v)[0] === 'imgur')
             .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : input().match(/[0-9A-Za-z]+/g);
             if(!arr) return;
-            const first = Math.max(...Object.keys(define).map(v => base62.decode(v)), -1) + 1;
+            const {next} = define;
             let i = 0;
             for(const v of arr){
-                const k = base62.encode(first + i);
-                if(k in define) continue;
-                define[k] = v;
+                const k = next + i;
+                define.set(k, v);
                 makeTr(k).appendTo(tbody);
                 i++;
             }
@@ -164,12 +161,12 @@
     };
     const makeTr = k => {
         const tr = $('tr'),
-              id = dqMap.define[k];
+              id = dqMap.define.get(k);
         $('<th>').appendTo(tr).text(k);
         $('<td>').appendTo(tr).text(id);
         $('<td>').appendTo(tr).text(makeCanvas(id));
         $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
-            delete dqMap.define[k];
+            dqMap.define.delete(k);
             tr.remove();
         });
         return tr;
@@ -229,17 +226,17 @@
         if(!win) return;
         const {elm} = win,
               {define} = dqMap;
-        const highLight = $('<canvas>').appendTo(elm).prop({width:16, height:16}),
+        const cv = $('<canvas>').appendTo(elm).prop({width:16, height:16}),
               ctx = cv.get(0).getContext('2d');
         ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
         ctx.lineWidth = 3;
         ctx.strokeRect(0,0,16,16);
-        for(const k in define) {
-            const cv = makeCanvas(define[k]).appendTo(elm)
+        for(const k of define.keys) {
+            const cv2 = makeCanvas(define.get(k)).appendTo(elm)
             .on('mouseover', () => {
-                highLight.css({left, top});
-            })
-            }
+                cv.css({left, top});
+            });
+        }
     };
     const openWindowAll = () =>{
         const win = Win.make('コマンド一覧');
