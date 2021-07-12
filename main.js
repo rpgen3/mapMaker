@@ -148,8 +148,7 @@
             });
             await new Promise(resolve => $('<button>').appendTo(elm).text('決定').on('click', resolve));
             const arr = bool ? rpgen3.findURL(input()).filter(v => rpgen3.getDomain(v)[0] === 'imgur')
-            .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.')))
-            : input().match(/[0-9A-Za-z]+/g);
+            .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : input().match(/[0-9A-Za-z]+/g);
             if(!arr) return;
             const first = Math.max(...Object.keys(define).map(v => base62.decode(v)), -1) + 1;
             let i = 0;
@@ -176,7 +175,7 @@
         return tr;
     };
     const makeCanvas = id => {
-        const cv = $('<canvas>'),
+        const cv = $('<canvas>').prop({width:16, height:16}),
               ctx = cv.get(0).getContext('2d'),
               obj = imgurMap.set(id);
         drawCanvas(ctx, obj.img);
@@ -228,7 +227,19 @@
     const openWindowPalette = () => {
         const win = Win.make('パレット選択');
         if(!win) return;
-        const {elm} = win;
+        const {elm} = win,
+              {define} = dqMap;
+        const highLight = $('<canvas>').appendTo(elm).prop({width:16, height:16}),
+              ctx = cv.get(0).getContext('2d');
+        ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(0,0,16,16);
+        for(const k in define) {
+            const cv = makeCanvas(define[k]).appendTo(elm)
+            .on('mouseover', () => {
+                highLight.css({left, top});
+            })
+            }
     };
     const openWindowAll = () =>{
         const win = Win.make('コマンド一覧');
