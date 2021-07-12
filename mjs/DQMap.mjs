@@ -24,7 +24,7 @@ export class DQMap {
               keys = ['width', 'height', 'depth'];
         this.info = toObj(ar[0], Number);
         const define = new Define;
-        for(const [k,v] in Object.entries(toObj(ar[1]))) define.set(decode(k), v);
+        for(const [k,v] of Object.entries(toObj(ar[1]))) define.set(decode(k), v);
         this.define = define;
         this.data = parse(ar[2], define._a);
         return this;
