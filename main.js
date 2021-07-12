@@ -34,6 +34,9 @@
             zMap.clear();
             for(let i = 0; i < dqMap.info.depth; i++) zMap.set(i, true);
             zMap.set('order', [...zMap.keys()]);
+            this.init();
+        }
+        init(){
             if(this.flag) return;
             this.flag = true;
             $('body').empty();
@@ -190,7 +193,11 @@
         const win = Win.make('レイヤー操作');
         if(!win) return;
         const {elm} = win;
-        const ul = $('<ul>').appendTo(elm).on('sortstop',()=>{
+        const ul = $('<ul>').appendTo(elm).sortable({
+            opacity: 0.5,
+            placeholder: 'drag',
+            axis: 'y'
+        }).on('sortstop',()=>{
             const arr = [];
             ul.children().each((i,e)=>arr.push(Number($(e).prop('z'))));
             zMap.set('order', arr);
