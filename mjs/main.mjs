@@ -190,14 +190,12 @@ const player = new class {
         this.timeIdx = (this.timeIdx + 1) % this.times.length;
     }
     putSprite(x, y){
-        console.log(x,y,input.z);
-        if(isCorrectZ()) dqMap.data[input.z][y][x] = input.v;
+        if(zMap.get(input.z)) dqMap.data[input.z][y][x] = input.v;
     }
     deleteSprite(x, y){
-        if(isCorrectZ()) dqMap.data[input.z][y][x] = -1;
+        if(zMap.get(input.z)) dqMap.data[input.z][y][x] = -1;
     }
 };
-const isCorrectZ = () => zMap.get(input.z);
 const rpgen4 = await importAll([
     'isKeyDown',
     'Canvas',
