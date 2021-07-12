@@ -154,16 +154,13 @@
             if(!win) return;
             const {elm} = win;
             $('<div>').appendTo(elm).text('複数入力も可');
-            const bool = rpgen3.addInputBool(elm,{
-                label: 'URLを入力する',
-                save: true
-            });
             const input = rpgen3.addInputStr(elm,{
                 label: '入力',
                 textarea: true
             });
             await new Promise(resolve => $('<button>').appendTo(elm).text('決定').on('click', resolve));
-            const arr = bool ? rpgen3.findURL(input()).filter(v => rpgen3.getDomain(v)[0] === 'imgur')
+            const urls = rpgen3.findURL(input()),
+                  arr = urls.length ? urls.filter(v => rpgen3.getDomain(v)[1] === 'imgur')
             .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : input().match(/[0-9A-Za-z]+/g);
             if(!arr) return;
             const {next} = define;
@@ -235,7 +232,8 @@
             zMap.set(z, !zMap.get(z));
         });
         $('<button>').appendTo(li).text('削除').on('click',()=>{
-            const arr = zMap.delete(z).get('order'),
+            zMap.delete(z);
+            const arr = zMap.get('order'),
                   idx = arr.indexOf(z);
             if(z !== -1) arr.splice(idx);
             li.remove();
