@@ -247,7 +247,7 @@
               {define} = dqMap;
         for(const k of define.keys) {
             const cv = makeCanvas(define.get(k)).appendTo(elm).on('click',()=>{
-                win.find('canvas').removeClass('active');
+                $(win).find('canvas').removeClass('active');
                 cv.addClass('active');
                 input.v = k;
             });
