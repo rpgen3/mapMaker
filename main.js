@@ -28,6 +28,7 @@
             $(this.cv).hide();
         }
         main(){
+            Win.delete();
             input.z = 0;
             input.v = -1;
             zMap.clear();
@@ -82,18 +83,15 @@
         a.elm.on('change', () => a(a().replace(/[^0-9]/g,'')));
         return () => Number(a());
     };
-    const openWindowInit = () => {
+    const openWindowInit = async () => {
         const win = Win.make('パラメータを設定して初期化').goto(20, 20);
         if(!win) return;
         const {elm} = win,
               w = addInputNum(elm, 'width', 50),
               h = addInputNum(elm, 'height', 50),
               d = addInputNum(elm, 'depth', 3);
-        $('<button>').appendTo(elm).text('マップを新規作成').on('click', () => makeNewMap(w(), h(), d()));
-    };
-    const makeNewMap = (w, h, d) => {
-        Win.delete();
-        dqMap.set(w, h, d).init();
+        await new Promise(resolve => $('<button>').appendTo(elm).text('マップを新規作成').on('click', resolve));
+        dqMap.set(w(), h(), d()).init();
         init.main();
     };
     const openWindowImport = () => {
@@ -113,7 +111,6 @@
         $('<button>').appendTo(elm).text('読み込む').on('click', () => loadFile(input()));
     };
     const loadFile = str => {
-        Win.delete();
         dqMap.input(str);
         init.main();
     };
