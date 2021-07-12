@@ -13,11 +13,13 @@ export class DQMap {
         return this;
     }
     init(){
-        this.data = [...new Array(this.depth)].map(() => this.make());
+        const {depth} = this.info;
+        this.data = [...new Array(depth)].map(() => this.make());
         return this;
     }
     make(){
-        return [...new Array(this.height)].map(() => [...new Array(this.width).fill(-1)]);
+        const {height, width} = this.info;
+        return [...new Array(height)].map(() => [...new Array(width).fill(-1)]);
     }
     input(str){ // 文字列からマップデータを読み込む
         const ar = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))[0]),
