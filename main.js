@@ -29,6 +29,8 @@
             $(this.cv).hide();
         }
         main(){
+            input.z = 0;
+            input.v = -1;
             zMap.clear();
             for(let i = 0; i < dqMap.info.depth; i++) zMap.set(i, true);
             zMap.set('order', [...zMap.keys()]);
