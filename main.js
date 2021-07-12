@@ -1,9 +1,7 @@
 (async()=>{
     const {importAll, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
-    await Promise.all([
-        'https://code.jquery.com/jquery-3.3.1.min.js',
-        'https://code.jquery.com/ui/1.12.1/jquery-ui.min.js'
-    ].map(getScript));
+    await getScript('https://code.jquery.com/jquery-3.3.1.min.js');
+    getScript('https://code.jquery.com/ui/1.12.1/jquery-ui.min.js');
     const html = $('body').empty().css({
         'text-align': 'center',
         padding: '1em',
@@ -16,7 +14,8 @@
         'input',
         'imgur',
         'url',
-        'util'
+        'util',
+        'random'
     ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
     const rpgen5 = await importAll([
         'Jsframe',
@@ -50,16 +49,30 @@
     const Win = new class {
         constructor(){
             this.arr = [];
+            this.w = 320;
+            this.h = 220;
+            this.unit = 30;
+            this.cnt = 0;
         }
-        make(title){
-            if(this.arr.some(([win, ttl]) => ttl === title && win.exist)) return false;
-            const win = new rpgen5.Jsframe(title);
-            this.arr.push([win, title]);
+        make(title, w = this.w, h = this.h){
+            const {arr} = this;
+            if(arr.some(win => win.title === title && win.exist)) return false;
+            const win = new rpgen5.Jsframe(title).set(w, h).goto(...Win.xy);
+            arr.push(win);
             return win;
         }
         delete(){
             const {arr} = this;
-            while(arr.length) arr.pop()[0].delete();
+            while(arr.length) arr.pop().delete();
+        }
+        get xy(){
+            const {w, h, unit} = this;
+            let now = ++this.cnt * unit;
+            if(now > Math.min($(window).width() - w, $(window).height() - h)) {
+                this.cnt = 0;
+                return this.xy;
+            }
+            return [...new Array(2)].map(v => rpgen3.randInt(-10, 10) + now);
         }
     };
     const addInputNum = (parent, label, value) => {
@@ -70,7 +83,7 @@
         return () => Number(a());
     };
     const openWindowInit = () => {
-        const win = Win.make('パラメータを設定して初期化');
+        const win = Win.make('パラメータを設定して初期化').goto(20, 20);
         if(!win) return;
         const {elm} = win,
               w = addInputNum(elm, 'width', 50),
@@ -84,7 +97,7 @@
         init.main();
     };
     const openWindowImport = () => {
-        const win = Win.make('作業ファイルを読み込む');
+        const win = Win.make('作業ファイルを読み込む').goto(40, 40);
         if(!win) return;
         const {elm} = win;
         $('<input>').appendTo(elm).prop({
@@ -253,10 +266,10 @@
             [openWindowDefine, '定義リスト'],
             [openWindowLayer, 'レイヤー操作'],
             [openWindowPalette, 'パレット選択'],
-        ].map(([func, ttl]) => $('<button>').appendTo(win).text(ttl).on('click', func));
+        ].map(([func, ttl]) => $('<button>').appendTo(elm).text(ttl).on('click', func));
     };
     $(window).on('keydown',({key})=>{
-        if(!init.falg) return;
+        if(!init.flag) return;
         switch(key){
             case '1': return openWindowAll();
             case '2': return openWindowDefine();
