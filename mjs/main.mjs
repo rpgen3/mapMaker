@@ -1,5 +1,6 @@
-export {cv, dqMap, update, zMap, imgurMap};
-const zMap = new Map;
+export {cv, dqMap, update, zMap, imgurMap, input};
+const input = {},
+      zMap = new Map;
 let g_debug;
 const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
 await getScript('https://rpgen3.github.io/lib/lib/jquery-3.5.1.min.js');
@@ -190,10 +191,10 @@ const player = new class {
         this.timeIdx = (this.timeIdx + 1) % this.times.length;
     }
     putSprite(x, y){
-        dqMap.data[z][y][x] = now;
+        dqMap.data[input.z][y][x] = input.v;
     }
     deleteSprite(x, y){
-        dqMap.data[z][y][x] = null;
+        dqMap.data[input.z][y][x] = -1;
     }
 };
 const rpgen4 = await importAll([
