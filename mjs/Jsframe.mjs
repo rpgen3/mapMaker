@@ -25,8 +25,13 @@ export class Jsframe {
     get exist(){
         return Boolean(this.frame.parentCanvas);
     }
-    set(x, y){
-        return this.frame.setPosition(x, y);
+    goto(x, y){
+        this.frame.setPosition(x, y);
+        return this;
+    }
+    set(w, h){
+        this.frame.setSize(w, h);
+        return this;
     }
     delete(){
         if(this.exist) this.frame.closeFrame();
