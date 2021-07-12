@@ -1,7 +1,7 @@
 (async()=>{
-    const {importAll, importAllSettled, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
+    const {importAll, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
     await Promise.all([
-        'https://code.jquery.com/git/jquery-git.slim.min.js',
+        'https://code.jquery.com/jquery-3.3.1.min.js',
         'https://code.jquery.com/ui/1.12.1/jquery-ui.min.js'
     ].map(getScript));
     const html = $('body').empty().css({
@@ -22,7 +22,7 @@
         'Jsframe',
         'main'
     ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
-    const {Jsframe, cv, dqMap, update, zMap, imgurMap} = rpgen5;
+    const {Jsframe, cv, dqMap, update, zMap, imgurMap, input} = rpgen5;
     const init = new class {
         constructor(){
             this.cv = $(cv.ctx.canvas);
@@ -108,7 +108,7 @@
             save: true
         });
         await new Promise(resolve => $('<button>').appendTo(elm).text('書き出し開始').on('click', resolve));
-        const str = dqMap.output(bool() ? ' ' : '');
+        const str = dqMap.output(bool() ? ' ' : '', zMap.get('order'));
         $('<button>').appendTo(elm).text('クリップボードにコピー').on('click', () => rpgen3.copy(str));
         $('<button>').appendTo(elm).text('txtファイルとして保存').on('click', () => makeTextFile('mapMaker', str));
     };
@@ -202,16 +202,15 @@
         });
     };
     const makeLi = z => {
-        const li = $('<li>').text(`レイヤー${z}`).prop({z});
+        const li = $('<li>').prop({z});
+        $('<span>').appendTo(li).text(`レイヤー${z}`).on('click',()=>{
+            li.parent().children().removeClass('active');
+            li.addClass('active');
+            input.z = z;
+        });
         $('<button>').appendTo(li).text('非表示').on('click',()=>{
-            if(zMap.get(z)){
-                zMap.set(z, false);
-                li.addClass('off').removeClass('on');
-            }
-            else {
-                zMap.set(z, true);
-                li.addClass('on').removeClass('off');
-            }
+            li.toggleClass('off');
+            zMap.set(z, !zMap.get(z));
         });
         $('<button>').appendTo(li).text('削除').on('click',()=>{
             const arr = zMap.delete(z).get('order'),
@@ -226,15 +225,11 @@
         if(!win) return;
         const {elm} = win,
               {define} = dqMap;
-        const cv = $('<canvas>').appendTo(elm).prop({width:16, height:16}),
-              ctx = cv.get(0).getContext('2d');
-        ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(0,0,16,16);
         for(const k of define.keys) {
-            const cv2 = makeCanvas(define.get(k)).appendTo(elm)
-            .on('mouseover', () => {
-                cv.css({left, top});
+            const cv = makeCanvas(define.get(k)).appendTo(elm).on('click',()=>{
+                win.find('canvas').removeClass('active');
+                cv.addClass('active');
+                input.v = k;
             });
         }
     };
