@@ -1,5 +1,5 @@
 import {BaseN} from 'https://rpgen3.github.io/mylib/export/BaseN.mjs';
-const {encode, decode} = new BaseN('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz');
+const base62 = new BaseN('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz');
 export class DQMap {
     constructor(){
         this.info = {};
@@ -24,7 +24,7 @@ export class DQMap {
               keys = ['width', 'height', 'depth'];
         this.info = toObj(ar[0], Number);
         const define = new Define;
-        for(const [k,v] of Object.entries(toObj(ar[1]))) define.set(decode(k), v);
+        for(const [k,v] of Object.entries(toObj(ar[1]))) define.set(base62.decode(k), v);
         this.define = define;
         this.data = parse(ar[2], define._a);
         return this;
@@ -50,7 +50,7 @@ class Define {
     }
     set(int, id){
         this._c.set(int, id);
-        const str = encode(int);
+        const str = base62.encode(int);
         this._a.set(str, int);
         this._b.set(int, str);
     }
