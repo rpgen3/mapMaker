@@ -63,8 +63,11 @@ class Define {
         this._a.delete(str);
         this._b.delete(int);
     }
+    get keys(){
+        return this._c.keys();
+    }
     get next(){
-        return Math.max(...this._c.keys(), -1) + 1;
+        return Math.max(...this.keys, -1) + 1;
     }
 };
 const nameRule = s => s.match(/[0-9A-Za-z]+/);
