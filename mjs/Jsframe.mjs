@@ -25,6 +25,15 @@ export class Jsframe {
     get exist(){
         return Boolean(this.frame.parentCanvas);
     }
+    get title(){
+        return this.frame.title;
+    }
+    get x(){
+        return this.frame.getLeft();
+    }
+    get y(){
+        return this.frame.getTop();
+    }
     goto(x, y){
         this.frame.setPosition(x, y);
         return this;
