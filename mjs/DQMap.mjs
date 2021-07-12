@@ -29,7 +29,7 @@ export class DQMap {
         this.data = parse(ar[2], define._a);
         return this;
     }
-    output(char = ''){ // マップデータを文字列化
+    output(char = '', zArr = [...new Array(this.depth).keys()]){ // マップデータを文字列化
         const m = new Map,
               {info, define, data} = this,
               ar = [
@@ -38,7 +38,7 @@ export class DQMap {
               ].map(v => v.map(v => v.map(v => v.join(':')).join('\n')));
         m.set('info', ar[0]);
         m.set('define', ar[1]);
-        m.set('data', stringify({...info, data, char, _b: define._b}));
+        m.set('data', stringify({...info, data, char, zArr, _b: define._b}));
         return [...m].map(([k,v]) => `#${k}\n${v}`).join('\n\n');
     }
 }
@@ -101,9 +101,9 @@ const parse = (data, _a) => {
     }
     return arZ;
 };
-const stringify = ({width, height, depth, data, char, _b}) => {
+const stringify = ({width, height, depth, data, char, zArr, _b}) => {
     const arZ = [];
-    for(let z = 0; z < depth; z++){
+    for(const z of zArr){
         const arY = [];
         for(let y = 0; y < height; y++){
             const arX = [];
