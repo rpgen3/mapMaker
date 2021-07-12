@@ -34,7 +34,7 @@ export class DQMap {
               {info, define, data} = this,
               ar = [
                   Object.entries(info),
-                  [...define].map(([k,v])=>[base62.encode(k),v])
+                  [...define._c].map(([k, v])=>[define._b.get(k), v])
               ].map(v => v.map(v => v.map(v => v.join(':')).join('\n')));
         m.set('info', ar[0]);
         m.set('define', ar[1]);
