@@ -16,7 +16,8 @@
         'input',
         'baseN',
         'imgur',
-        'url'
+        'url',
+        'util'
     ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
     const rpgen5 = await importAll([
         'Jsframe',
@@ -41,7 +42,7 @@
     };
     $('<h1>').appendTo(header).text('ドラクエ風マップ作成ツール');
     $('<button>').appendTo(body).text('新規作成').on('click', () => openWindowInit());
-    $('<button>').appendTo(body).text('読み込み').on('click', () => openWindowLoad());
+    $('<button>').appendTo(body).text('読み込み').on('click', () => openWindowImport());
     const Win = new class {
         constructor(){
             this.arr = [];
@@ -78,8 +79,8 @@
         dqMap.set(w, h, d).init();
         init.main();
     };
-    const openWindowLoad = () => {
-        const win = Win.make('セーブデータを読み込む');
+    const openWindowImport = () => {
+        const win = Win.make('作業ファイルを読み込む');
         if(!win) return;
         const {elm} = win;
         $('<input>').appendTo(elm).prop({
@@ -99,6 +100,25 @@
         dqMap.input(str);
         init.main();
     };
+    const openWindowExport = async () => {
+        const win = Win.make('現在の編集内容を書き出す');
+        if(!win) return;
+        const {elm} = win;
+        const bool = rpgen3.addInputBool(elm,{
+            label: '空値に半角スペースを使用する',
+            save: true
+        });
+        await new Promise(resolve => $('<button>').appendTo(elm).text('書き出し開始').on('click', resolve));
+        const str = dqMap.output(bool() ? ' ' : '');
+        $('<button>').appendTo(elm).text('クリップボードにコピー').on('click', () => rpgen3.copy(str));
+        $('<button>').appendTo(elm).text('txtファイルとして保存').on('click', () => makeTextFile('mapMaker', str));
+    };
+    const makeTextFile = (ttl, str) => $('<a>').prop({
+        download: ttl + '.txt',
+        href: URL.createObjectURL(new Blob([str], {
+            type: 'text/plain'
+        }))
+    }).get(0).click();
     const base62 = new rpgen3.BaseN('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz');
     const openWindowDefine = () => {
         const win = Win.make('定義リスト');
@@ -119,7 +139,8 @@
             const {elm} = win;
             $('<div>').appendTo(elm).text('複数入力も可');
             const bool = rpgen3.addInputBool(elm,{
-                label: 'URLを入力する'
+                label: 'URLを入力する',
+                save: true
             });
             const input = rpgen3.addInputStr(elm,{
                 label: '入力',
@@ -130,7 +151,7 @@
             .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.')))
             : input().match(/[0-9A-Za-z]+/g);
             if(!arr) return;
-            const first = Math.max(...Object.keys(define).map(v => base62.decode(v))) + 1;
+            const first = Math.max(...Object.keys(define).map(v => base62.decode(v)), -1) + 1;
             let i = 0;
             for(const v of arr){
                 const k = base62.encode(first + i);
@@ -139,6 +160,7 @@
                 makeTr(k).appendTo(tbody);
                 i++;
             }
+            win.delete();
         });
     };
     const makeTr = k => {
@@ -214,7 +236,8 @@
         const {elm} = win;
         [
             [openWindowInit, '初期化'],
-            [openWindowLoad, 'ロード'],
+            [openWindowImport, '読み込み'],
+            [openWindowExport, '書き出し'],
             [openWindowDefine, '定義リスト'],
             [openWindowLayer, 'レイヤー操作'],
             [openWindowPalette, 'パレット選択'],
