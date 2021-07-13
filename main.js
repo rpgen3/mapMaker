@@ -1,5 +1,5 @@
 (async()=>{
-    const {importAll, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
+    const {importAll, getScript, getCSS} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
     await getScript('https://code.jquery.com/jquery-3.3.1.min.js');
     getScript('https://code.jquery.com/ui/1.12.1/jquery-ui.min.js');
     const html = $('body').empty().css({
@@ -50,15 +50,13 @@
     const Win = new class {
         constructor(){
             this.arr = [];
-            this.w = 320;
-            this.h = 220;
             this.unit = 30;
             this.cnt = 0;
         }
         make(title, w = this.w, h = this.h){
             const {arr} = this;
             if(arr.some(win => win.title === title && win.exist)) return false;
-            const win = new rpgen5.Jsframe(title).set(w, h).goto(...Win._xy);
+            const win = new rpgen5.Jsframe(title).set(w, h).goto(...this._xy(win));
             arr.push(win);
             return win;
         }
@@ -66,14 +64,14 @@
             const {arr} = this;
             while(arr.length) arr.pop().delete();
         }
-        get _xy(){
-            const {w, h, unit} = this;
-            let now = ++this.cnt * unit;
+        _xy(win){
+            const {w, h} = win;
+            let now = ++this.cnt * this.unit;
             if(now > Math.min($(window).width() - w, $(window).height() - h)) {
                 this.cnt = 0;
-                return this._xy;
+                return this._xy(win);
             }
-            return [...new Array(2)].map(v => rpgen3.randInt(-10, 10) + now);
+            return [...new Array(2)].map(v => rpgen3.randInt(-5, 5) + now);
         }
     };
     const addInputNum = (parent, label, value) => {
@@ -269,10 +267,10 @@
     $(window).on('keydown',({key})=>{
         if(!init.flag) return;
         switch(key){
-            case 'q': return openWindowAll();
-            case 'w': return openWindowDefine();
-            case 'e': return openWindowLayer();
-            case 'r': return openWindowPalette();
+            case ' ': return openWindowAll();
+            case 'd': return openWindowDefine();
+            case 'l': return openWindowLayer();
+            case 'p': return openWindowPalette();
         }
     });
 })();
