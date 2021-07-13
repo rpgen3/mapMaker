@@ -1,16 +1,15 @@
 import {getScript} from 'https://rpgen3.github.io/mylib/export/import.mjs';
 await getScript('https://riversun.github.io/jsframe/jsframe.js');
+const jsFrame = new JSFrame();
 export class Jsframe {
     constructor(title){
-        const frame = new JSFrame().create({
+        const frame = jsFrame.create({
             title,
             appearanceName: 'redstone',
             style: {
                 backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                overflow: 'hidden'
-            },
-            movable: true,
-            resizable: true
+                overflow: 'auto'
+            }
         }).show();
         minimizeButton(frame);
         deminimizeButton(frame);
