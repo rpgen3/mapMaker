@@ -266,9 +266,9 @@
             [openWindowInit, '初期化'],
             [openWindowImport, '読み込み'],
             [openWindowExport, '書き出し'],
-            [openWindowDefine, '定義リスト'],
-            [openWindowLayer, 'レイヤー操作'],
-            [openWindowPalette, 'パレット選択'],
+            [openWindowDefine, '定義リスト[d]'],
+            [openWindowLayer, 'レイヤー操作[l]'],
+            [openWindowPalette, 'パレット選択[p]'],
         ].map(([func, ttl]) => $('<button>').appendTo(elm).text(ttl).on('click', func));
     };
     $(window).on('keydown',({key})=>{
