@@ -37,7 +37,7 @@ export class DQMap {
               ar = [
                   Object.entries(info),
                   [...define._c].map(([k, v])=>[define._b.get(k), v])
-              ].map(v => v.map(v => v.map(v => v.join(':')).join('\n')));
+              ].map(v => v.map(v => v.join(':')).join('\n'));
         m.set('info', ar[0]);
         m.set('define', ar[1]);
         m.set('data', stringify({...info, data, char, zArr, _b: define._b}));
