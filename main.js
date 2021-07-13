@@ -144,7 +144,7 @@
               thead = $('<thead>').appendTo(table),
               tr = $('<tr>').appendTo(thead);
         for(const str of [
-            'id', 'imgurID', '画像', '削除'
+            'id', 'imgurID', 'img', 'delete'
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table),
               {define} = dqMap;
@@ -202,45 +202,46 @@
     const openWindowLayer = () => {
         const win = Win.make('レイヤー操作');
         if(!win) return;
-        const {elm} = win;
-        const ul = $('<ul>').appendTo(elm).sortable({
-            opacity: 0.5,
+        const {elm} = win,
+              table = $('<table>').appendTo(elm);
+        const tbody = $('<tbody>').appendTo(table).sortable({
+            opacity: 0.6,
             placeholder: 'drag',
             axis: 'y'
         }).on('sortstop',()=>{
             const arr = [];
-            ul.children().each((i,e)=>arr.push(Number($(e).prop('z'))));
+            tbody.children().each((i,e)=>arr.push(Number($(e).prop('z'))));
             zMap.set('order', arr);
         });
-        for(const z of zMap.keys()) if(!isNaN(z)) makeLi(z).appendTo(ul);
+        for(const z of zMap.keys()) if(!isNaN(z)) makeTr2(z).appendTo(tbody);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => {
             dqMap.data.push(dqMap.make());
             const z = dqMap.info.depth++;
             zMap.set(z, true).get('order').push(z);
-            makeLi(z).appendTo(ul);
+            makeTr2(z).appendTo(tbody);
         });
     };
-    const makeLi = z => {
-        const li = $('<li>').prop({z});
-        $('<span>').appendTo(li).text(`レイヤー${z}`).on('click',()=>{
-            li.parent().children().removeClass('active');
-            li.addClass('active');
+    const makeTr2 = z => {
+        const tr = $('<tr>').on('click',()=>{
+            tr.parent().children().removeClass('active');
+            tr.addClass('active');
             input.z = z;
         });
-        if(input.z === z) li.addClass('active');
-        $('<button>').appendTo(li).text('非表示').on('click',()=>{
-            li.toggleClass('off');
+        if(input.z === z) tr.addClass('active');
+        $('<th>').appendTo(tr).text(`レイヤー${z}`);
+        $('<button>').appendTo($('<td>').appendTo(tr)).text('非表示').on('click',()=>{
+            tr.toggleClass('off');
             zMap.set(z, !zMap.get(z));
         });
-        if(!zMap.get(z)) li.addClass('off');
-        $('<button>').appendTo(li).text('削除').on('click',()=>{
+        if(!zMap.get(z)) tr.addClass('off');
+        $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
             zMap.delete(z);
             const arr = zMap.get('order'),
                   idx = arr.indexOf(z);
             if(z !== -1) arr.splice(idx);
-            li.remove();
+            tr.remove();
         });
-        return li;
+        return tr;
     };
     const openWindowPalette = () => {
         const win = Win.make('パレット選択');
@@ -249,7 +250,7 @@
               {define} = dqMap;
         for(const k of define.keys) {
             const cv = makeCanvas(define.get(k)).appendTo(elm).on('click',()=>{
-                $(win).find('canvas').removeClass('active');
+                $(elm).find('canvas').removeClass('active');
                 cv.addClass('active');
                 input.v = k;
             });
