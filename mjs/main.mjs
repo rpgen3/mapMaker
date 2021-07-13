@@ -133,7 +133,7 @@ const frame = new class {
 const player = new class {
     constructor(){
         this.x = this.y = this._x = this._y = this.nowX = this.nowY = 0;
-        this.times = [200, 150, 100];
+        this.times = [200, 100, 50];
         this.timeIdx = 0;
         this.lastTime = 0;
         this._time = null;
@@ -254,7 +254,7 @@ new SimpleText({
     },
     size: unit,
     color: 'blue'
-}).goto(0, unit * 2);
+}).goto(0, unit * 1.5);
 new SimpleText({
     text: {
         toString: () => `debug=${g_debug}`
