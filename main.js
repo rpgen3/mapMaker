@@ -1,5 +1,12 @@
 (async()=>{
-    const {importAll, getScript, getCSS} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
+    const {importAll, getScript, getCSS, promiseSerial} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
+    promiseSerial([
+        'table',
+        'ul',
+        'plusBtn',
+        'active',
+        'off'
+    ].map(v => getCSS(`https://rpgen3.github.io/mapMaker/css/${v}.css`)));
     await getScript('https://code.jquery.com/jquery-3.3.1.min.js');
     getScript('https://code.jquery.com/ui/1.12.1/jquery-ui.min.js');
     const html = $('body').empty().css({
@@ -53,7 +60,7 @@
         }
         make(title, w = this.w, h = this.h){
             const {arr} = this;
-            if(arr.some(win => win.title === title && win.exist)) return false;
+            if(arr.some(win => win.title === title && win.exist && win.focus())) return false;
             const win = new rpgen5.Jsframe(title).set(w, h);
             arr.push(win.goto(...this._xy(win)));
             return win;
