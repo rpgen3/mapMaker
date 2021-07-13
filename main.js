@@ -175,7 +175,7 @@
         });
     };
     const makeTr = k => {
-        const tr = $('tr'),
+        const tr = $('<tr>'),
               id = dqMap.define.get(k);
         $('<th>').appendTo(tr).text(k);
         $('<td>').appendTo(tr).text(id);
