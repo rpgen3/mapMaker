@@ -154,10 +154,10 @@ const player = new class {
         else if(isKeyDown(['f'])) this.speedUp();
         let rate = 0;
         if(!this._time){
-            if(isKeyDown(['ArrowLeft','a'])) this.set('a').move(-1, 0);
-            else if(isKeyDown(['ArrowRight','d'])) this.set('d').move(1, 0);
-            else if(isKeyDown(['ArrowUp','w'])) this.set('w').move(0, -1);
-            else if(isKeyDown(['ArrowDown','s'])) this.set('s').move(0, 1);
+            if(isKeyDown(['ArrowLeft'])) this.set('a').move(-1, 0);
+            else if(isKeyDown(['ArrowRight'])) this.set('d').move(1, 0);
+            else if(isKeyDown(['ArrowUp'])) this.set('w').move(0, -1);
+            else if(isKeyDown(['ArrowDown'])) this.set('s').move(0, 1);
         }
         else {
             rate = 1 - (g_nowTime - _time) / this.times[this.timeIdx];
