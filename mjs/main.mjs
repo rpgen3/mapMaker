@@ -35,7 +35,7 @@ class Sprite {
 }
 class Anime {
     constructor(that){
-        that.anime = 500;
+        that.anime = 1000;
         that.direct = 's';
         that.set = this.set;
         that.draw = this.draw;
@@ -188,7 +188,7 @@ const player = new class {
         if(g_nowTime - this.lastTime < 300) return;
         this.lastTime = g_nowTime;
         this.timeIdx = (this.timeIdx + 1) % this.times.length;
-        imgurMap.get(this.id).anime = this.times[this.timeIdx] * 5/2;
+        imgurMap.get(this.id).anime = this.times[this.timeIdx] * 5;
     }
     put(v = -1){
         const {z} = input;
