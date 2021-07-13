@@ -149,7 +149,7 @@
         const tbody = $('<tbody>').appendTo(table),
               {define} = dqMap;
         for(const k of define.keys) makeTr(k).appendTo(tbody);
-        $('<button>').appendTo(elm).addClass('plusBtn').on('click', async () => {
+        $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', async () => {
             const win = Win.make('imgurIDを新規追加');
             if(!win) return;
             const {elm} = win;
@@ -213,7 +213,7 @@
             zMap.set('order', arr);
         });
         for(const z of zMap.keys()) if(!isNaN(z)) makeLi(z).appendTo(ul);
-        $('<button>').appendTo(elm).addClass('plusBtn').on('click', () => {
+        $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => {
             dqMap.data.push(dqMap.make());
             const z = dqMap.info.depth++;
             zMap.set(z, true).get('order').push(z);
