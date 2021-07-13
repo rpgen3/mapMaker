@@ -269,10 +269,10 @@
     $(window).on('keydown',({key})=>{
         if(!init.flag) return;
         switch(key){
-            case '1': return openWindowAll();
-            case '2': return openWindowDefine();
-            case '3': return openWindowLayer();
-            case '4': return openWindowPalette();
+            case 'q': return openWindowAll();
+            case 'w': return openWindowDefine();
+            case 'e': return openWindowLayer();
+            case 'r': return openWindowPalette();
         }
     });
 })();
