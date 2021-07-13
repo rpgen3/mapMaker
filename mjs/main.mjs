@@ -251,15 +251,22 @@ new SimpleText({
 });
 new SimpleText({
     text: {
-        toString: () => `${player.times[0]/player.times[player.timeIdx]}倍速`
+        toString: () => `[F]${player.times[0]/player.times[player.timeIdx]}倍速`
     },
     size: unit,
     color: 'blue'
-}).goto(0, unit * 1.5);
+}).goto(0, unit * 2);
+new SimpleText({
+    text: {
+        toString: () => `スペースキーでメニューを開く`
+    },
+    size: unit,
+    color: 'blue'
+}).goto(0, unit * 4);
 new SimpleText({
     text: {
         toString: () => `debug=${g_debug}`
     },
     size: unit,
     color: 'blue'
-}).goto(0, unit * 3);
+}).goto(0, unit * 6);
