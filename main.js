@@ -58,7 +58,7 @@
         make(title, w = this.w, h = this.h){
             const {arr} = this;
             if(arr.some(win => win.title === title && win.exist)) return false;
-            const win = new rpgen5.Jsframe(title).set(w, h).goto(...Win.xy);
+            const win = new rpgen5.Jsframe(title).set(w, h).goto(...Win._xy);
             arr.push(win);
             return win;
         }
@@ -66,12 +66,12 @@
             const {arr} = this;
             while(arr.length) arr.pop().delete();
         }
-        get xy(){
+        get _xy(){
             const {w, h, unit} = this;
             let now = ++this.cnt * unit;
             if(now > Math.min($(window).width() - w, $(window).height() - h)) {
                 this.cnt = 0;
-                return this.xy;
+                return this._xy;
             }
             return [...new Array(2)].map(v => rpgen3.randInt(-10, 10) + now);
         }
@@ -84,7 +84,7 @@
         return () => Number(a());
     };
     const openWindowInit = async () => {
-        const win = Win.make('パラメータを設定して初期化').goto(20, 20);
+        const win = Win.make('パラメータを設定して初期化');
         if(!win) return;
         const {elm} = win,
               w = addInputNum(elm, 'width', 50),
@@ -95,7 +95,7 @@
         init.main();
     };
     const openWindowImport = () => {
-        const win = Win.make('作業ファイルを読み込む').goto(40, 40);
+        const win = Win.make('作業ファイルを読み込む');
         if(!win) return;
         const {elm} = win;
         $('<input>').appendTo(elm).prop({
@@ -224,10 +224,12 @@
             li.addClass('active');
             input.z = z;
         });
+        if(input.z === z) li.addClass('active');
         $('<button>').appendTo(li).text('非表示').on('click',()=>{
             li.toggleClass('off');
             zMap.set(z, !zMap.get(z));
         });
+        if(!zMap.get(z)) li.addClass('off');
         $('<button>').appendTo(li).text('削除').on('click',()=>{
             zMap.delete(z);
             const arr = zMap.get('order'),
@@ -248,6 +250,7 @@
                 cv.addClass('active');
                 input.v = k;
             });
+            if(input.v === k) cv.addClass('active');
         }
     };
     const openWindowAll = () =>{
