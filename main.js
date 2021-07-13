@@ -188,17 +188,12 @@
         return tr;
     };
     const makeCanvas = id => {
-        const cv = $('<canvas>').prop({width:16, height:16}),
+        const cv = $('<canvas>').prop({width: 48, height: 48}),
               ctx = cv.get(0).getContext('2d'),
               obj = imgurMap.set(id);
-        drawCanvas(ctx, obj.img);
-        obj.promise.then(() => drawCanvas(ctx, obj.img));
+        imgurMap.get(id).draw(ctx, 0, 0);
+        obj.promise.then(() => imgurMap.get(id).draw(ctx, 0, 0));
         return cv;
-    };
-    const drawCanvas = (ctx, img) => {
-        const unit = 16;
-        if(img.width === unit) ctx.drawImage(img, 0, 0, unit, unit);
-        else ctx.drawImage(img, 0, unit * 2, unit, unit, 0, 0, unit, unit);
     };
     const openWindowLayer = () => {
         const win = Win.make('レイヤー操作');
