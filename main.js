@@ -7,9 +7,7 @@
         padding: '1em',
         'user-select': 'none'
     });
-    const header = $('<div>').appendTo(html),
-          body = $('<div>').appendTo(html),
-          footer = $('<div>').appendTo(html);
+    const holder = $('<div>').appendTo(html);
     const rpgen3 = await importAll([
         'input',
         'imgur',
@@ -39,14 +37,14 @@
         init(){
             if(this.flag) return;
             this.flag = true;
-            $('body').empty();
-            $(this.cv).show().appendTo('body');
+            holder.remove();
+            $(this.cv).show();
             update();
         }
     };
-    $('<h1>').appendTo(header).text('ドラクエ風マップ作成ツール');
-    $('<button>').appendTo(body).text('新規作成').on('click', () => openWindowInit());
-    $('<button>').appendTo(body).text('読み込み').on('click', () => openWindowImport());
+    $('<h1>').appendTo(holder).text('ドラクエ風マップ作成ツール');
+    $('<button>').appendTo(holder).text('新規作成').on('click', () => openWindowInit());
+    $('<button>').appendTo(holder).text('読み込み').on('click', () => openWindowImport());
     const Win = new class {
         constructor(){
             this.arr = [];
