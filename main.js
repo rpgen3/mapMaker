@@ -116,6 +116,7 @@
     const loadFile = str => {
         dqMap.input(str);
         init.main();
+        openWindowDefine();
     };
     const openWindowExport = async () => {
         const win = Win.make('現在の編集内容を書き出す');
