@@ -254,7 +254,7 @@ const setText = new class {
         }).goto(0, unit * 1.5 * this.cnt++);
     }
 };
-setText.main(() => `座標(${player.x},${player.y}`);
+setText.main(() => `座標(${player.x},${player.y})`);
 setText.main(() => `[F]${player.times[0]/player.times[player.timeIdx]}倍速`);
 setText.main(() => `スペースキーでメニューを開く`);
 setText.main(() => `debug=${g_debug}`);
