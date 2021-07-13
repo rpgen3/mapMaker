@@ -56,8 +56,8 @@
         make(title, w = this.w, h = this.h){
             const {arr} = this;
             if(arr.some(win => win.title === title && win.exist)) return false;
-            const win = new rpgen5.Jsframe(title).set(w, h).goto(...this._xy(win));
-            arr.push(win);
+            const win = new rpgen5.Jsframe(title).set(w, h);
+            arr.push(win.goto(...this._xy(win)));
             return win;
         }
         delete(){
