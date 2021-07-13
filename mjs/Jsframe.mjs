@@ -16,7 +16,7 @@ export class Jsframe {
         maximizeButton(frame);
         restoreButton(frame);
         this.frame = frame;
-        this.set(320, 220).goto(20, 20);
+        this.set(320, 220).goto(20, 20).focus();
     }
     get elm(){
         return this.frame.dframe;
@@ -49,6 +49,10 @@ export class Jsframe {
     }
     delete(){
         if(this.exist) this.frame.closeFrame();
+    }
+    focus(){
+        this.frame.requestFocus();
+        return this;
     }
 }
 const minimizeButton = frame => frame.on('minimizeButton', 'click', (_frame, evt) => {
