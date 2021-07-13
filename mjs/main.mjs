@@ -149,8 +149,8 @@ const player = new class {
     }
     update(ctx){
         const {x, y, _x, _y, time, _time} = this;
-        if(isKeyDown(['z'])) this.putSprite(x, y);
-        else if(isKeyDown(['x'])) this.deleteSprite(x, y);
+        if(isKeyDown(['z'])) this.put(input.v);
+        else if(isKeyDown(['x'])) this.put();
         else if(isKeyDown(['f'])) this.speedUp();
         let rate = 0;
         if(!this._time){
@@ -189,11 +189,12 @@ const player = new class {
         this.lastTime = g_nowTime;
         this.timeIdx = (this.timeIdx + 1) % this.times.length;
     }
-    putSprite(x, y){
-        if(zMap.get(input.z)) dqMap.data[input.z][y][x] = input.v;
-    }
-    deleteSprite(x, y){
-        if(zMap.get(input.z)) dqMap.data[input.z][y][x] = -1;
+    put(v = -1){
+        const {z} = input;
+        if(zMap.get(z)) return;
+        const {x, y} = this,
+              a = dqMap.data[z][y];
+        if(a[x] !== v) a[x] = v;
     }
 };
 const rpgen4 = await importAll([
