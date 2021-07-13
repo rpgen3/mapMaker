@@ -4,7 +4,6 @@ export class Jsframe {
     constructor(title){
         const frame = new JSFrame().create({
             title,
-            left: 20, top: 20, width: 320, height: 220,
             appearanceName: 'redstone',
             style: {
                 backgroundColor: 'rgba(255, 255, 255, 0.7)',
@@ -18,6 +17,7 @@ export class Jsframe {
         maximizeButton(frame);
         restoreButton(frame);
         this.frame = frame;
+        this.set(320, 220).goto(20, 20);
     }
     get elm(){
         return this.frame.dframe;
@@ -33,6 +33,12 @@ export class Jsframe {
     }
     get y(){
         return this.frame.getTop();
+    }
+    get w(){
+        return this.frame.getWidth();
+    }
+    get h(){
+        return this.frame.getHeight();
     }
     goto(x, y){
         this.frame.setPosition(x, y);
