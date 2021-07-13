@@ -191,7 +191,7 @@ const player = new class {
     }
     put(v = -1){
         const {z} = input;
-        if(zMap.get(z)) return;
+        if(!zMap.get(z)) return;
         const {x, y} = this,
               a = dqMap.data[z][y];
         if(a[x] !== v) a[x] = v;
