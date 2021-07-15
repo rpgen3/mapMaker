@@ -126,6 +126,7 @@ const toStr = map => {
     }
 };
 const stringify = ({width, height, depth, define, data, zArr}) => {
+    let max = 0;
     const arZ = [];
     for(const z of zArr){
         const arY = [];
@@ -144,6 +145,7 @@ const stringify = ({width, height, depth, define, data, zArr}) => {
                         str += '-' + index;
                     }
                     if('direct' in obj) str += direct;
+                    if(max < str.length) max = str.length;
                     return str;
                 })();
                 arX.push(v ? v : '');
@@ -152,7 +154,5 @@ const stringify = ({width, height, depth, define, data, zArr}) => {
         }
         arZ.push(arY);
     }
-    let max = 0;
-    for(const z of arZ) for(const y of z) for(const x of y) if(max < x.length) max = x.length;
     return arZ.map((z, i) => `$${i}\n` + z.map(y => y.map(x => ' '.repeat(max - x.length) + x).join(',')).join('\n')).join('\n\n');
 };
