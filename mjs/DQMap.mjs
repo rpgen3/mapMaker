@@ -154,5 +154,5 @@ const stringify = ({width, height, depth, define, data, zArr}) => {
     }
     let max = 0;
     for(const z of arZ) for(const y of z) for(const x of y) if(max < x.length) max = x.length;
-    return arZ.map((z, i) => `$${i}\n` + z.map(y => y.map(x => x + ' '.repeat(max - x.length)).join(',')).join('\n')).join('\n\n');
+    return arZ.map((z, i) => `$${i}\n` + z.map(y => y.map(x => ' '.repeat(max - x.length) + x).join(',')).join('\n')).join('\n\n');
 };
