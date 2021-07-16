@@ -28,6 +28,7 @@ export class DQMap {
         return true;
     }
     put(x, y, z, elm = null){
+        if(this.isOut(x, y, z)) return;
         const {data, isDefined} = this,
               a = data[z][y];
         if(isEqual(a[x], elm) && (elm === null || isDefined(elm))) a[x] = elm;
