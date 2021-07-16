@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap, input, dMap};
+export {cv, dqMap, update, zMap, input, dMap, unitSize};
 const input = {},
       zMap = new Map;
 let g_debug;
