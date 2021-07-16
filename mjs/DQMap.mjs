@@ -19,13 +19,21 @@ export class DQMap {
         const {height, width} = this.info;
         return [...new Array(height)].map(() => [...new Array(width).fill(null)]);
     }
-    defined({key, index, direct}){
+    isDefined({key, index, direct}){
         const {define} = this;
         if(!define.has(key)) return false;
         const obj = define.get(key);
         if('direct' in obj && !/^[wasd]$/.test(direct)) return false;
         if('index' in obj && !obj.index.includes(index)) return false;
         return true;
+    }
+    static isEqual(a, b){
+        if(a === b) return true; // null === null
+        else if(a === null || b === null) return false;
+        else if(a.key !== b.key) return false;
+        else if('direct' in a && a.direct !== b.direct) return false;
+        else if('index' in a && a.index !== b.index) return false;
+        else return true;
     }
     input(str){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
