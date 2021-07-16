@@ -223,7 +223,8 @@ const player = new class {
         this.nowY = y - (y - _y) * rate;
     }
     draw(ctx){
-        this.obj.draw(ctx, ...frame.calcPlayerXY(this.nowX, this.nowY), this.way);
+        const {obj, nowX, nowY, way} = this;
+        obj.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {way});
     }
     goto(x, y){
         const {width, height} = dqMap.info;
