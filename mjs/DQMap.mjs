@@ -36,9 +36,9 @@ export class DQMap {
         const {width, height, depth} = this.info;
         return x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth;
     }
-    has(x, y, z){
+    isEmpty(x, y, z){
         const {width, height, depth} = this.info;
-        return this.isOut(x, y, z) && !data[z][x][y];
+        return this.isOut(x, y, z) || !data[z][x][y];
     }
     input(str){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
