@@ -128,8 +128,13 @@ const dMap = new class {
     has(k){
         return this.map.has(k);
     }
+    delete(k){
+        this.map.delete(k);
+        return this;
+    }
     clear(){
-        return this.map.clear();
+        this.map.clear();
+        return this;
     }
     set(k, v){
         const {map, judge} = this,
