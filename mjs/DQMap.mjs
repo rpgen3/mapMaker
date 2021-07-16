@@ -1,4 +1,4 @@
-class DQMap {
+export class DQMap {
     constructor(){
         this.info = {};
         this.define = new Map;
@@ -18,6 +18,14 @@ class DQMap {
     make(){
         const {height, width} = this.info;
         return [...new Array(height)].map(() => [...new Array(width).fill(null)]);
+    }
+    isDefined({key, index, direct}){
+        const {define} = this;
+        if(!define.has(key)) return false;
+        const obj = define.get(key);
+        if('direct' in obj && !/^[wasd]$/.test(direct)) return false;
+        if('index' in obj && !obj.index.includes(index)) return false;
+        return true;
     }
     input(str){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
@@ -92,7 +100,7 @@ const parse = (data, define) => {
                       key = m?.[0];
                 if(define.has(key)) {
                     const elm = {key},
-                          obj = define[key];
+                          obj = define.get(key);
                     if('direct' in obj) {
                         const direct = e.match(/[wasd]/)?.[0];
                         if(direct) elm.direct = direct;
@@ -117,7 +125,8 @@ const toStr = map => {
             ar.push(flame);
             ar.push(direct);
         }
-        if('index' in v && index.length){
+        if('index' in v){
+            if(!index.length) continue;
             ar.push(width);
             if(height) ar.push(height);
             ar.push('[' + index.join(', ') + ']');
@@ -136,8 +145,8 @@ const stringify = ({width, height, depth, define, data, zArr}) => {
                 const elm = data[z][y][x];
                 const v = (()=>{
                     if(!elm) return;
-                    const {key, direct, index} = elm,
-                          obj = define[key];
+                    const {key, index, direct} = elm,
+                          obj = define.get(key);
                     if(!obj) return;
                     let str = key;
                     if('index' in obj) {
