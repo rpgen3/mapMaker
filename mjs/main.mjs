@@ -122,6 +122,15 @@ const dMap = new class {
     constructor(){
         this.map = new Map;
     }
+    get(k){
+        return this.map.get(k);
+    }
+    has(k){
+        return this.map.has(k);
+    }
+    clear(){
+        return this.map.clear();
+    }
     set(k, v){
         const {map, judge} = this;
         map.set(k, new (judge(v))(v));
@@ -165,7 +174,7 @@ const frame = new class {
     draw(ctx, x, y, z){
         if(dqMap.isEmpty(x, y, z)) return;
         const {key, index, way} = dqMap.data[z][y][x];
-        dMap.map.get(key)?.draw(ctx, x, y, {index, way});
+        dMap.get(key)?.draw(ctx, x, y, {index, way});
     }
     _pivot(n){
         return (n / 2 | 0) + 1;
