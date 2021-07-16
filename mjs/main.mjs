@@ -146,8 +146,7 @@ const frame = new class {
     }
     update(ctx){
         if(!dqMap.data) return;
-        const {info, define} = dqMap,
-              {width, height, depth} = info,
+        const {width, height, depth} = dqMap.info,
               [pivotW, pivotH] = this._pivotWH,
               maxX = width - pivotW,
               maxY = height - pivotH;
