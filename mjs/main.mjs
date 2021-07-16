@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap, input, define};
+export {cv, dqMap, update, zMap, input, dMap};
 const input = {},
       zMap = new Map;
 let g_debug;
@@ -118,7 +118,7 @@ class AnimeSplit extends SpriteSplit {
         );
     }
 }
-const define = new class {
+const dMap = new class {
     constructor(){
         this.map = new Map;
     }
@@ -165,7 +165,7 @@ const frame = new class {
     draw(ctx, x, y, z){
         if(dqMap.isEmpty(x, y, z)) return;
         const {key, index, way} = dqMap.data[z][y][x];
-        define.map.get(key)?.draw(ctx, x, y, {index, way});
+        dMap.map.get(key)?.draw(ctx, x, y, {index, way});
     }
     _pivot(n){
         return (n / 2 | 0) + 1;
