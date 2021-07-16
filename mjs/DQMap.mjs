@@ -19,7 +19,7 @@ export class DQMap {
         const {height, width} = this.info;
         return [...new Array(height)].map(() => [...new Array(width).fill(null)]);
     }
-    isDefined({key, index, direct}){
+    defined({key, index, direct}){
         const {define} = this;
         if(!define.has(key)) return false;
         const obj = define.get(key);
