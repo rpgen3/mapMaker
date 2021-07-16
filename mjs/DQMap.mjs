@@ -41,6 +41,9 @@ export class DQMap {
         const {width, height, depth} = this.info;
         return this.isOut(x, y, z) || !data[z][x][y];
     }
+    get next(){
+        return Math.max(...this.define.keys(), -1) + 1;
+    }
     input(str){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
         if([info, define, data].some(v => !v)) throw new Error('DQMap needs #info, #define and #data');
