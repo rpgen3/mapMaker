@@ -1,4 +1,4 @@
-export export class DQMap {
+export class DQMap {
     constructor(){
         this.info = {};
         this.define = new Map;
@@ -31,6 +31,10 @@ export export class DQMap {
         const {data, isDefined} = this,
               a = data[z][y];
         if(isEqual(a[x], elm) && (elm === null || isDefined(elm))) a[x] = elm;
+    }
+    isOut(x, y, z){
+        const {width, height, depth} = this.info;
+        return x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth;
     }
     input(str){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
