@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap, input, defineMap, Sprite, SpriteSplit, Anime, AnimeSplit};
+export {cv, dqMap, update, zMap, input, define};
 const input = {},
       zMap = new Map;
 let g_debug;
@@ -13,7 +13,7 @@ const sysImg = await Promise.all([
 ].map(id => rpgen3.imgur.load(id)));
 const unitSize = 48; // 1マスの大きさ
 class Sprite {
-    constructor(id){
+    constructor({id}){
         this.img = sysImg[0];
         this.adjust(16, 16);
         this.promise = rpgen3.imgur.load(id).then(img => {
@@ -39,8 +39,8 @@ class Sprite {
     }
 }
 class SpriteSplit extends Sprite {
-    constructor(id, width, height, index){
-        super(id).promise.then(() => {
+    constructor({id, width, height = width, index}){
+        super({id}).promise.then(() => {
             if(this.err) return;
             this.index = index;
             this.split(width, height);
@@ -68,8 +68,8 @@ class SpriteSplit extends Sprite {
     }
 }
 class Anime extends Sprite {
-    constructor(id, flame, way){
-        super(id).promise.then(() => {
+    constructor({id, flame, way}){
+        super({id}).promise.then(() => {
             if(this.err) return;
             this.flame = flame;
             this.way = way;
@@ -94,8 +94,8 @@ class Anime extends Sprite {
     }
 }
 class AnimeSplit extends SpriteSplit {
-    constructor(id, flame, way, width, height, index){
-        super(id, width * flame, height * way.length, index).promise.then(() => {
+    constructor({id, flame, way, width, height = width, index}){
+        super({id, width: width * flame, height: height * way.length, index}).promise.then(() => {
             if(this.err) return;
             this.flame = flame;
             this.way = way;
@@ -118,7 +118,23 @@ class AnimeSplit extends SpriteSplit {
         );
     }
 }
-const defineMap = new Map;
+const define = new class {
+    constructor(){
+        this.map = new Map;
+    }
+    set(k, v){
+        const {map, judge} = this;
+        map.set(k, new (judge(v))(v));
+    }
+    judge(obj){
+        const a = 'way' in obj,
+              b = 'index' in obj;
+        if(a && b) return AnimeSplit;
+        else if(a) return Anime;
+        else if(b) return SpriteSplit;
+        else return Sprite;
+    }
+};
 const frame = new class {
     constructor(){
         this.x = this.y = this._x = this._y = 0;
@@ -150,7 +166,7 @@ const frame = new class {
     draw(ctx, x, y, z){
         if(dqMap.isEmpty(x, y, z)) return;
         const {key, index, way} = dqMap.data[z][y][x];
-        defineMap.get(key)?.draw(ctx, x, y, {index, way});
+        define.map.get(key)?.draw(ctx, x, y, {index, way});
     }
     _pivot(n){
         return (n / 2 | 0) + 1;
@@ -194,7 +210,7 @@ const player = new class {
         this.lastTime = 0;
         this._time = null;
         this.way = 's';
-        this.obj = new Anime('fFrt63r', 2, 'wdsa');
+        this.obj = new Anime({id: 'fFrt63r', flame: 2, way: 'wdsa'});
     }
     set(way){
         this.way = way;
