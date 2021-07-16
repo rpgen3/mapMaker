@@ -132,8 +132,10 @@ const dMap = new class {
         return this.map.clear();
     }
     set(k, v){
-        const {map, judge} = this;
-        map.set(k, new (judge(v))(v));
+        const {map, judge} = this,
+              obj = new (judge(v))(v);
+        map.set(k, obj);
+        return obj;
     }
     judge(obj){
         const a = 'way' in obj,
