@@ -23,10 +23,13 @@
         'random'
     ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
     const rpgen5 = await importAll([
-        'Jsframe',
-        'main'
+        'main',
+        'Jsframe'
     ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
-    const {Jsframe, cv, dqMap, update, zMap, imgurMap, input} = rpgen5;
+    const {
+        cv, dqMap, update, zMap, input, dMap, unitSize,
+        Jsframe
+    } = rpgen5;
     const init = new class {
         constructor(){
             this.cv = $(cv.ctx.canvas);
@@ -115,8 +118,10 @@
     };
     const loadFile = str => {
         dqMap.input(str);
+        dMap.clear();
+        const {define} = dqMap;
+        for(const [k,v] of define) dMap.set(k, define.get(k));
         init.main();
-        openWindowDefine();
     };
     const openWindowExport = async () => {
         const win = Win.make('現在の編集内容を書き出す');
@@ -149,7 +154,7 @@
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table),
               {define} = dqMap;
-        for(const k of define.keys) makeTr(k).appendTo(tbody);
+        for(const k of define.keys()) makeTrDefine(tbody, k);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', async () => {
             const win = Win.make('imgurIDを新規追加');
             if(!win) return;
@@ -168,31 +173,45 @@
             let i = 0;
             for(const v of arr){
                 const k = next + i;
-                define.set(k, v);
-                makeTr(k).appendTo(tbody);
+                define.set(k, v); // 114514
+                makeTrDefine(tbody, k);
                 i++;
             }
             win.delete();
         });
     };
-    const makeTr = k => {
-        const tr = $('<tr>'),
-              id = dqMap.define.get(k);
-        $('<th>').appendTo(tr).text(k);
+    const makeTrDefine = (tbody, key) => {
+        const {define} = dqMap,
+              obj = define.get(key),
+              {id, index} = obj;
+        if('index' in obj) {
+            for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i), () => {
+                const idx = index.indexOf(i);
+                if(idx !== -1) index.splice(idx);
+                if(!index.length) deleteKey(key);
+            });
+        }
+        else makeTrDefine2(key, id, makeCanvas(key), () => deleteKey(key));
+    };
+    const deleteKey = key => {
+        dqMap.delete(key);
+        dMap.delete(key);
+    };
+    const makeTrDefine2 = (key, id, cv, remove) => {
+        const tr = $('<tr>');
+        $('<th>').appendTo(tr).text(key);
         $('<td>').appendTo(tr).text(id);
-        makeCanvas(id).appendTo($('<td>').appendTo(tr));
+        $('<td>').appendTo(tr).append(cv);
         $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
-            dqMap.define.delete(k);
             tr.remove();
+            remove();
         });
         return tr;
     };
-    const makeCanvas = id => {
-        const cv = $('<canvas>').prop({width: 48, height: 48}),
-              ctx = cv.get(0).getContext('2d'),
-              obj = imgurMap.set(id);
-        imgurMap.get(id).draw(ctx, 0, 0);
-        obj.promise.then(() => imgurMap.get(id).draw(ctx, 0, 0));
+    const makeCanvas = (key, index) => {
+        const cv = $('<canvas>').prop({width: unitSize, height: unitSize}),
+              ctx = cv.get(0).getContext('2d');
+        dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
         return cv;
     };
     const openWindowLayer = () => {
@@ -209,15 +228,15 @@
             tbody.children().each((i,e)=>arr.push(Number($(e).prop('z'))));
             zMap.set('order', arr);
         });
-        for(const z of zMap.keys()) if(!isNaN(z)) makeTr2(z).appendTo(tbody);
+        for(const z of zMap.keys()) if(!isNaN(z)) makeTrLayer(z).appendTo(tbody);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => {
             dqMap.data.push(dqMap.make());
             const z = dqMap.info.depth++;
             zMap.set(z, true).get('order').push(z);
-            makeTr2(z).appendTo(tbody);
+            makeTrLayer(z).appendTo(tbody);
         });
     };
-    const makeTr2 = z => {
+    const makeTrLayer = z => {
         const tr = $('<tr>').on('click',()=>{
             tr.parent().children().removeClass('active');
             tr.addClass('active');
@@ -242,15 +261,47 @@
     const openWindowPalette = () => {
         const win = Win.make('パレット選択');
         if(!win) return;
-        const {elm} = win,
-              {define} = dqMap;
-        for(const k of define.keys) {
-            const cv = makeCanvas(define.get(k)).appendTo(elm).on('click',()=>{
-                $(elm).find('canvas').removeClass('active');
-                cv.addClass('active');
-                input.v = k;
-            });
-            if(input.v === k) cv.addClass('active');
+        const {elm} = win;
+        const inputWay = rpgen3.addSelect(elm, {
+            label: '人物の向き',
+            list: {
+                '↑': 'w',
+                '←': 'a',
+                '↓': 's',
+                '→': 'd'
+            },
+            value: '↓',
+            save: true
+        });
+        inputWay.elm.on('change', () => {
+            if(!input.v) input.v = {};
+            input.v.way = inputWay();
+        });
+        const holder = $('<div>').appendTo(elm);
+        for(const [k,v] of dqMap.define) {
+            const {id, index} = v;
+            if('index' in v) for(const i of index) makePalette(holder, k, i);
+            else makePalette(holder, k);
+        }
+    };
+    const makePalette = (elm, key, index = null) => {
+        const cv = makeCanvas(key, index).appendTo(elm).on('click',()=>{
+            $(elm).find('canvas').removeClass('active');
+            cv.addClass('active');
+            if(!input.v) input.v = {};
+            const {v} = input;
+            v.key = key;
+            if(index === null) delete v.index;
+            else v.index = index;
+        });
+        const {v} = input;
+        if(v) {
+            if((()=>{
+                if(index === null) {
+                    if(v.key === key) return true;
+                }
+                else if(v.key === key && v.index === index) return true;
+            })()) cv.addClass('active');
         }
     };
     const openWindowAll = () =>{
