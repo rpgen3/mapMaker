@@ -36,7 +36,7 @@ export class DQMap {
         const {width, height, depth} = this.info;
         return x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth;
     }
-    isValid(x, y, z){
+    has(x, y, z){
         const {width, height, depth} = this.info;
         return this.isOut(x, y, z) && !data[z][x][y];
     }
