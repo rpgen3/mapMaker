@@ -19,11 +19,11 @@ export class DQMap {
         const {height, width} = this.info;
         return [...new Array(height)].map(() => [...new Array(width).fill(null)]);
     }
-    isDefined({key, index, direct}){
+    isDefined({key, index, way}){
         const {define} = this;
         if(!define.has(key)) return false;
         const obj = define.get(key);
-        if('direct' in obj && !/^[wasd]$/.test(direct)) return false;
+        if('way' in obj && !/^[wasd]$/.test(way)) return false;
         if('index' in obj && !obj.index.includes(index)) return false;
         return true;
     }
@@ -61,7 +61,7 @@ const isEqual = (a, b) => {
     if(a === b) return true; // null === null
     else if(a === null || b === null) return false;
     else if(a.key !== b.key) return false;
-    else if('direct' in a && a.direct !== b.direct) return false;
+    else if('way' in a && a.way !== b.way) return false;
     else if('index' in a && a.index !== b.index) return false;
     else return true;
 };
@@ -92,7 +92,7 @@ const toMap = arr => {
         obj.id = next().match(/[0-9A-Za-z]+/)?.[0];
         if(/[wasd]/.test(arg[2])) {
             obj.flame = toInt(next());
-            obj.direct = next().replace(/[^wasd]/g, '')
+            obj.way = next().replace(/[^wasd]/g, '')
         }
         if(index.length) {
             obj.width = toInt(next());
@@ -118,9 +118,9 @@ const parse = (data, define) => {
                 if(define.has(key)) {
                     const elm = {key},
                           obj = define.get(key);
-                    if('direct' in obj) {
-                        const direct = e.match(/[wasd]/)?.[0];
-                        if(direct) elm.direct = direct;
+                    if('way' in obj) {
+                        const way = e.match(/[wasd]/)?.[0];
+                        if(way) elm.way = way;
                     }
                     if('index' in obj) elm.index = m[1];
                     arX.push(elm);
@@ -137,10 +137,10 @@ const toStr = map => {
     const a = [];
     for(const [k,v] of map){
         const ar = [],
-              {flame, direct, width, height, index} = v;
-        if('direct' in v){
+              {flame, way, width, height, index} = v;
+        if('way' in v){
             ar.push(flame);
-            ar.push(direct);
+            ar.push(way);
         }
         if('index' in v){
             if(!index.length) continue;
@@ -162,7 +162,7 @@ const stringify = ({width, height, depth, define, data, zArr}) => {
                 const elm = data[z][y][x];
                 const v = (()=>{
                     if(!elm) return;
-                    const {key, index, direct} = elm,
+                    const {key, index, way} = elm,
                           obj = define.get(key);
                     if(!obj) return;
                     let str = key;
@@ -170,7 +170,7 @@ const stringify = ({width, height, depth, define, data, zArr}) => {
                         if(!obj.index.includes(index)) return;
                         str += '-' + index;
                     }
-                    if('direct' in obj) str += direct;
+                    if('way' in obj) str += way;
                     if(max < str.length) max = str.length;
                     return str;
                 })();
