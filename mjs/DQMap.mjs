@@ -19,19 +19,25 @@ export class DQMap {
         const {height, width} = this.info;
         return [...new Array(height)].map(() => [...new Array(width).fill(null)]);
     }
-    isDefined({key, index, way}){
-        const {define} = this;
-        if(!define.has(key)) return false;
-        const obj = define.get(key);
-        if('way' in obj && !/^[wasd]$/.test(way)) return false;
-        if('index' in obj && !obj.index.includes(index)) return false;
-        return true;
-    }
-    put(x, y, z, elm = null){
+    put(x, y, z, v = null){
         if(this.isOut(x, y, z)) return;
-        const {data, isDefined} = this,
-              a = data[z][y];
-        if(isEqual(a[x], elm) && (elm === null || isDefined(elm))) a[x] = elm;
+        const {define, data} = this,
+              a = data[z][y],
+              putNull = () => isEqual(a[x], null) && (a[x] = null);
+        if(v === null) return putNull();
+        const {key, index, way} = v;
+        if(!define.has(key)) return putNull();
+        const obj = define.get(key),
+              elm = {key};
+        if('index' in obj) {
+            if(obj.index.includes(index)) elm.index = index;
+            else return putNull();
+        }
+        if('way' in obj){
+            if(obj.way.includes(way)) elm.way = way;
+            else return putNull();
+        }
+        if(isEqual(a[x], elm)) a[x] = elm;
     }
     isOut(x, y, z){
         const {width, height, depth} = this.info;
