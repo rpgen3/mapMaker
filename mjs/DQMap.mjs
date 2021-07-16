@@ -1,4 +1,4 @@
-export class DQMap {
+export export class DQMap {
     constructor(){
         this.info = {};
         this.define = new Map;
@@ -27,13 +27,10 @@ export class DQMap {
         if('index' in obj && !obj.index.includes(index)) return false;
         return true;
     }
-    static isEqual(a, b){
-        if(a === b) return true; // null === null
-        else if(a === null || b === null) return false;
-        else if(a.key !== b.key) return false;
-        else if('direct' in a && a.direct !== b.direct) return false;
-        else if('index' in a && a.index !== b.index) return false;
-        else return true;
+    put(x, y, z, elm = null){
+        const {data, isDefined} = this,
+              a = data[z][y];
+        if(isEqual(a[x], elm) && (elm === null || isDefined(elm))) a[x] = elm;
     }
     input(str){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
@@ -56,6 +53,14 @@ export class DQMap {
         return [...m].map(([k,v]) => `#${k}\n${v}`).join('\n\n');
     }
 }
+const isEqual = (a, b) => {
+    if(a === b) return true; // null === null
+    else if(a === null || b === null) return false;
+    else if(a.key !== b.key) return false;
+    else if('direct' in a && a.direct !== b.direct) return false;
+    else if('index' in a && a.index !== b.index) return false;
+    else return true;
+};
 const toArr = str => {
     const a = [];
     for(const line of str.split('\n')){
