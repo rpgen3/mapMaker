@@ -43,10 +43,6 @@ export class DQMap {
         const {width, height, depth} = this.info;
         return x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth;
     }
-    isEmpty(x, y, z){
-        const {width, height, depth} = this.info;
-        return this.isOut(x, y, z) || !this.data[z][y][x];
-    }
     get next(){
         return Math.max(...this.define.keys(), -1) + 1;
     }
