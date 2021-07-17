@@ -27,13 +27,13 @@ class Sprite {
     adjust(width, height){ // 位置調整
         let w, h, x, y;
         const f = (w, h) => [unitSize, unitSize * (h / w)];
-        if(w < h) {
-            [w, h] = f(w, h);
+        if(width < height) {
+            [w, h] = f(width, height);
             x = 0;
             y = unitSize - h;
         }
         else {
-            [h, w] = f(h, w);
+            [h, w] = f(height, width);
             y = 0;
             x = (unitSize - w) / 2;
         }
@@ -48,20 +48,20 @@ class SpriteSplit extends Sprite {
     constructor({id, width, height, index}){
         super({id}).promise.then(() => {
             if(!this.isReady) return;
-            this.index = index;
-            this.split(width, height);
             this.adjust(width, height);
             this._w = width;
             this._h = height;
+            this.index = index;
+            this.indexToXY = SpriteSplit.split(this.img, width, height);
         });
     }
-    split(w, h){
-        const {width, height} = this.img,
+    static split(img, w, h){
+        const {width, height} = img,
               maxX = width / w,
               maxY = height / h,
-              ar = [];
-        for(let i = 0; i < maxY; i++) for(let j = 0; j < maxX; j++) ar.push([j, i]);
-        this.indexToXY = ar;
+              a = [];
+        for(let i = 0; i < maxY; i++) for(let j = 0; j < maxX; j++) a.push([j, i]);
+        return a;
     }
     draw(ctx, x, y, {index}){
         if(!this.isReady) return super.draw(ctx, x, y);
@@ -77,45 +77,59 @@ class Anime extends Sprite {
     constructor({id, frame, way}){
         super({id}).promise.then(() => {
             if(!this.isReady) return;
-            this.frame = frame;
-            this.way = way;
             const w = this.img.width / frame | 0,
                   h = this.img.height / way.length | 0;
             this.adjust(w, h);
             this._w = w;
             this._h = h;
+            this.frame = frame;
+            this.way = way;
             this.anime = 1200;
+            this.stop(false);
+            if(frame === 3) this.goAndBack = true;
         });
+    }
+    stop(bool = true){
+        this._stop = bool ? false : this.frame > 1;
+    }
+    calcFrame(){
+        if(this._stop) return;
+        const {frame, anime} = this;
+        let now =  g_nowTime % anime;
+        if(this.goAndBack){
+            const half = anime / 2;
+            now = (half - Math.abs(now - half)) * 2;
+        }
+        return now / anime * frame | 0;
     }
     draw(ctx, x, y, {way}){
         if(!this.isReady) return super.draw(ctx, x, y);
-        const {img, _w, _h, w, h, frame, anime} = this,
-              _x = (g_nowTime % anime / anime * frame | 0) * _w,
-              _y = this.way.indexOf(way) * _h;
+        const {img, _w, _h, w, h} = this,
+              _x = _w * this.calcFrame(),
+              _y = _h * this.way.indexOf(way);
         ctx.drawImage(
             img, _x, _y, _w, _h,
             this.x + x * unitSize, this.y + y * unitSize - input.y, w, h
         );
     }
 }
-class AnimeSplit extends SpriteSplit {
+class AnimeSplit extends Anime {
     constructor({id, frame, way, width, height, index}){
-        super({id, width: width * frame, height: height * way.length, index}).promise.then(() => {
+        super({id, frame, way}).promise.then(() => {
             if(!this.isReady) return;
-            this.frame = frame;
-            this.way = way;
             this.adjust(width, height);
             this._w = width;
             this._h = height;
-            this.anime = 1200;
+            this.index = index;
+            this.indexToXY = SpriteSplit.split(this.img, width, height);
         });
     }
     draw(ctx, x, y, {way, index}){
         if(!this.isReady) return super.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
-              {img, _w, _h, w, h, frame, anime} = this,
-              _xx = unitSize * _x + (g_nowTime % anime / anime * frame | 0) * _w,
-              _yy = unitSize * _y + this.way.indexOf(way) * _h;
+              {img, _w, _h, w, h} = this,
+              _xx = unitSize * _x + _w * this.calcFrame(),
+              _yy = unitSize * _y + _h * this.way.indexOf(way);
         ctx.drawImage(
             img,
             _xx, _yy, _w, _h,
