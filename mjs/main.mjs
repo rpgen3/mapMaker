@@ -1,5 +1,6 @@
 export {cv, dqMap, update, zMap, input, dMap, unitSize};
-const input = {y: 6, z: 0, v: null},
+const unitSize = 48,
+      input = {y: 6, z: 0, v: null},
       zMap = new Map;
 let g_debug;
 const {importAll} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
@@ -11,7 +12,6 @@ const sysImg = await Promise.all([
     'oypcplE', // now loading
     'aY2ef1p' // 404
 ].map(id => rpgen3.imgur.load(id)));
-const unitSize = 48; // 1マスの大きさ
 class Sprite {
     constructor({id}){
         this.img = sysImg[0];
