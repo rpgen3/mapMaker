@@ -82,22 +82,28 @@
             return [...new Array(2)].map(v => rpgen3.randInt(-5, 5) + now);
         }
     };
-    const addInputNum = (parent, label, value) => {
-        const a = rpgen3.addInputStr(parent,{
-            label, value, save: true
-        });
-        a.elm.on('change', () => a(a().replace(/[^0-9]/g,'')));
-        return () => Number(a());
-    };
+    const toInt = str => Number(str?.().match(/[0-9]+/)?.[0]) || 0;
     const openWindowInit = async () => {
         const win = Win.make('パラメータを設定して初期化');
         if(!win) return;
-        const {elm} = win,
-              w = addInputNum(elm, 'width', 50),
-              h = addInputNum(elm, 'height', 50),
-              d = addInputNum(elm, 'depth', 3);
+        const {elm} = win;
+        const w = rpgen3.addInputStr(elm,{
+            label: 'width',
+            value: 50,
+            save: true
+        });
+        const h = rpgen3.addInputStr(elm,{
+            label: 'height',
+            value: 50,
+            save: true
+        });
+        const d = rpgen3.addInputStr(elm,{
+            label: 'depth',
+            value: 3,
+            save: true
+        });
         await new Promise(resolve => $('<button>').appendTo(elm).text('マップを新規作成').on('click', resolve));
-        dqMap.set(w(), h(), d()).init();
+        dqMap.set(...[w, h, d].map(toInt)).init();
         init.main();
     };
     const openWindowImport = () => {
@@ -155,30 +161,129 @@
         const tbody = $('<tbody>').appendTo(table),
               {define} = dqMap;
         for(const k of define.keys()) makeTrDefine(tbody, k);
-        $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', async () => {
-            const win = Win.make('imgurIDを新規追加');
-            if(!win) return;
-            const {elm} = win;
-            $('<div>').appendTo(elm).text('複数入力も可');
-            const input = rpgen3.addInputStr(elm,{
-                label: '入力',
-                textarea: true
+        $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => openWindowSelect(tbody));
+    };
+    const openWindowSelect = async tbody => {
+        const win = Win.make('追加する素材のタイプを選択');
+        if(!win) return;
+        const msg = (()=>{
+            const elm = $('<div>').appendTo(elm);
+            return (str, isError) => $('<span>').appendTo(elm.empty()).text(`${str}(${rpgen3.getTime()})`).css({
+                color: isError ? 'red' : 'blue',
+                backgroundColor: isError ? 'pink' : 'lightblue'
             });
-            await new Promise(resolve => $('<button>').appendTo(elm).text('決定').on('click', resolve));
-            const urls = rpgen3.findURL(input()),
-                  arr = urls.length ? urls.filter(v => rpgen3.getDomain(v)[1] === 'imgur')
-            .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : input().match(/[0-9A-Za-z]+/g);
-            if(!arr) return;
-            const {next} = define;
-            let i = 0;
-            for(const v of arr){
-                const k = next + i;
-                define.set(k, v); // 114514
-                makeTrDefine(tbody, k);
-                i++;
-            }
-            win.delete();
+        })();
+        const {elm} = win,
+              addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on(
+                  'click', openWindowInputImgur(tbody, isAnime, isSplit)
+                  .then(()=>msg('読み込みが正常に完了しました'))
+                  .catch(err=>msg(err, true))
+              );
+        addBtn('単体のマップチップ');
+        addBtn('単体の歩行グラ', true);
+        addBtn('複数のマップチップ', false, true);
+        addBtn('複数の歩行グラ', true, true);
+    };
+    const openWindowInputImgur = async (tbody, isAnime, isSplit) => {
+        const win = Win.make('imgurIDを新規追加');
+        if(!win) return;
+        const {elm} = win;
+        let inputFlame, inputWay, inputWidth, inputHeight;
+        if(isAnime){
+            const inputTemplate = rpgen3.addSelect(elm,{
+                label: 'テンプレ入力',
+                value: 'ここから選択',
+                list: {
+                    'ここから選択': null,
+                    'RPGEN': [[2, 'wdsa'], [16, 16]],
+                    'ツクール2000': [[3, 'wdsa'], [24, 32]],
+                    'ツクールXP': [[4, 'sadw'], [32, 48]],
+                    'ツクールVX': [[3, 'sadw'], [32, 32]],
+                    'ツクールMV': [[3, 'sadw'], [48, 48]],
+                }
+            }).elm.on('change', () => {
+                if(!inputTemplate()) return;
+                const [[flame, way], [width, height]] = inputTemplate();
+                inputFlame(flame);
+                inputWay(way);
+                if(isSplit){
+                    inputWidth(width);
+                    inputHeight(height);
+                }
+            });
+            inputFlame = rpgen3.addInputStr(elm,{
+                label: 'フレーム数',
+                value: 3,
+                save: true
+            });
+            $('<div>').appendTo(elm).text('wasd: ↑←↓→');
+            inputWay = rpgen3.addInputStr(elm,{
+                label: '方向の定義',
+                value: 'sadw',
+                save: true
+            });
+        }
+        if(isSplit){
+            inputWidth = rpgen3.addInputStr(elm,{
+                label: '幅',
+                value: 16,
+                save: true
+            });
+            inputHeight = rpgen3.addInputStr(elm,{
+                label: '高さ',
+                value: 16,
+                save: true
+            });
+        }
+        $('<div>').appendTo(elm).text('以下にURLかimgurIDを入力');
+        $('<div>').appendTo(elm).text('複数の入力も可');
+        const input = rpgen3.addInputStr(elm,{
+            label: '入力欄',
+            textarea: true
         });
+        await new Promise(resolve => $('<button>').appendTo(elm).text('決定').on('click', resolve));
+        const urls = rpgen3.findURL(input()),
+              arr = urls.length ? urls.filter(v => rpgen3.getDomain(v)[1] === 'imgur')
+        .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : input().match(/[0-9A-Za-z]+/g);
+        if(!arr) return;
+        const {next} = dqMap;
+        let i = 0;
+        for(const v of arr){
+            const obj = {};
+            try {
+                if(isAnime){
+                    const f = toInt(inputFlame()),
+                          w = inputWay();
+                    if(!f) throw 'フレーム数の値が不正です';
+                    if(!/[wasd]/.test(w)) '方向の定義の値が不正です';
+                    obj.flame = f;
+                    obj.way = w;
+                }
+                if(isSplit){
+                    const w = toInt(inputWidth()),
+                          h = toInt(inputHeight());
+                    if(!w || !h) '幅・高さの値が0です';
+                    if(w > 64 || h > 64) '幅・高さの最大値は64pxです';
+                    obj.width = w;
+                    obj.height = h;
+                }
+            }
+            catch(err) {
+                win.delete();
+                throw err;
+            }
+            const k = next + i;
+            dMap.set(k, obj);
+            if(isSplit){
+                const d = dMap.get(k),
+                      index = [...d.indexToXY.keys()];
+                d.index = obj.index = index;
+            }
+            dqMap.set(k, obj);
+            makeTrDefine(tbody, k);
+            i++;
+        }
+        win.delete();
     };
     const makeTrDefine = (tbody, key) => {
         const {define} = dqMap,
