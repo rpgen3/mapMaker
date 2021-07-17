@@ -105,7 +105,7 @@ const toMap = arr => {
               obj = {};
         obj.id = next().match(/[0-9A-Za-z]+/)?.[0];
         if(/[wasd]/.test(arg[2])) {
-            obj.flame = toInt(next());
+            obj.frame = toInt(next());
             obj.way = next().replace(/[^wasd]/g, '')
         }
         if(index.length) {
@@ -151,9 +151,9 @@ const toStr = map => {
     const a = [];
     for(const [k,v] of map){
         const ar = [],
-              {flame, way, width, height, index} = v;
+              {frame, way, width, height, index} = v;
         if('way' in v){
-            ar.push(flame);
+            ar.push(frame);
             ar.push(way);
         }
         if('index' in v){
