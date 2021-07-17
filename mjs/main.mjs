@@ -329,13 +329,14 @@ class SimpleText {
 const setText = new class {
     constructor(){
         this.cnt = 0;
+        this.half = unitSize >> 1;
     }
     main(toString){
         return new SimpleText({
             text: {toString},
-            size: unit,
+            size: this.half,
             color: 'blue'
-        }).goto(0, unit * 1.5 * this.cnt++);
+        }).goto(0, this.half * 1.5 * this.cnt++ | 0);
     }
 };
 setText.main(() => `座標(${player.x},${player.y})`);
