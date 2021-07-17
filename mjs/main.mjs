@@ -174,16 +174,23 @@ const frame = new class {
         let i = 0;
         for(const idx of zMap.get('order')) {
             if(!zMap.get(idx)) continue;
-            for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) this.draw(ctx, x + k, y + j, i);
+            for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) this.draw({
+                ctx,
+                x: k + x,
+                y: j + y,
+                z: i,
+                _x: k + _xx,
+                _y: j + _yy
+            });
             i++;
         }
     }
-    draw(ctx, x, y, z){
+    draw({ctx, x, y, z, _x, _y}){
         if(dqMap.isOut(x, y, z)) return;
         const elm = dqMap.data[z][y][x];
         if(!elm) return;
         const {key, index, way} = elm;
-        dMap.get(key)?.draw(ctx, x, y, {index, way});
+        dMap.get(key)?.draw(ctx, _x, _y, {index, way});
     }
     _pivot(n){
         return (n / 2 | 0) + 1;
