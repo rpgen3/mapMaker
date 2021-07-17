@@ -303,7 +303,7 @@ const rpgen5 = await importAll([
 ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
 const dqMap = new rpgen5.DQMap();
 layer.set(player);
-layer.set(frame.set(cv.w / Sprite | 0, cv.h / Sprite | 0));
+layer.set(frame.set(cv.w / unitSize | 0, cv.h / unitSize | 0));
 layer.set({update: ctx => player.draw(ctx)});
 let g_nowTime;
 const update = () => {
