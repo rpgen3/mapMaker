@@ -87,10 +87,10 @@ class Anime extends Sprite {
         });
     }
     stop(bool = true){
-        this._stop = bool ? false : this.frame > 1;
+        this._stop = bool ? true : this.frame < 2;
     }
     calcFrame(){
-        if(this._stop) return;
+        if(this._stop) return 0;
         const {frame, anime} = this;
         let now =  g_nowTime % anime;
         if(this.goAndBack){
