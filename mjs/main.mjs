@@ -99,14 +99,14 @@ class Anime extends Sprite {
         }
         return now / anime * frame | 0;
     }
-    draw(ctx, x, y, {way}){
+    draw(ctx, x, y, {way}, diff){
         if(!this.isReady) return super.draw(ctx, x, y);
         const {img, _w, _h, w, h} = this,
               _x = _w * this.calcFrame(),
               _y = _h * this.way.indexOf(way);
         ctx.drawImage(
             img, _x, _y, _w, _h,
-            this.x + x * unitSize, this.y + y * unitSize - input.y, w, h
+            this.x + x * unitSize, this.y + y * unitSize - diff, w, h
         );
     }
 }
@@ -119,7 +119,7 @@ class AnimeSplit extends Anime {
             this.indexToXY = SpriteSplit.split(this.img, width, height);
         });
     }
-    draw(ctx, x, y, {way, index}){
+    draw(ctx, x, y, {way, index}, diff){
         if(!this.isReady) return super.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h} = this,
@@ -128,7 +128,7 @@ class AnimeSplit extends Anime {
         ctx.drawImage(
             img,
             _xx, _yy, _w, _h,
-            this.x + x * unitSize, this.y + y * unitSize - input.y, w, h
+            this.x + x * unitSize, this.y + y * unitSize - diff, w, h
         );
     }
 }
@@ -200,7 +200,7 @@ const frame = new class {
         const elm = dqMap.data[z][y][x];
         if(!elm) return;
         const {key, index, way} = elm;
-        dMap.get(key)?.draw(ctx, _x, _y, {index, way});
+        dMap.get(key)?.draw(ctx, _x, _y, {index, way}, input.y);
     }
     _pivot(n){
         return (n / 2 | 0) + 1;
