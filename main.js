@@ -176,8 +176,8 @@
         })(elm);
         const addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on(
             'click', () => openWindowInputImgur(tbody, isAnime, isSplit)
-            .then(() => msg('読み込みが正常に完了しました'))
-            .catch(err => msg(err, true))
+            //.then(() => msg('読み込みが正常に完了しました'))
+            //.catch(err => msg(err, true))
         );
         addBtn('単体のマップチップ');
         addBtn('単体の歩行グラ', true);
@@ -268,6 +268,7 @@
                     if(w > 64 || h > 64) '幅・高さの最大値は64pxです';
                     obj.width = w;
                     obj.height = h;
+                    obj.index = [];
                 }
             }
             catch(err) {
@@ -277,27 +278,32 @@
             const k = next + i,
                   {promise} = dMap.set(k, obj);
             if(isSplit){
-                const d = dMap.get(k),
-                      index = [...d.indexToXY.keys()];
-                d.index = obj.index = index;
+                promise.then(() => {
+                    window.d = dMap;
+                    const d = dMap.get(k),
+                          index = [...d.indexToXY.keys()];
+                    d.index = obj.index = index;
+                });
             }
-            dqMap.define.set(k, obj);
-            makeTrDefine(tbody, k, promise);
+            promise.then(() => {
+                dqMap.define.set(k, obj);
+                makeTrDefine(tbody, k);
+            });
             i++;
         }
         win.delete();
     };
-    const makeTrDefine = (tbody, key, promise) => {
+    const makeTrDefine = (tbody, key) => {
         const obj = dqMap.define.get(key),
               {id, index} = obj;
         if('index' in obj) {
-            for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i, promise).appendTo(tbody), () => {
+            for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i).appendTo(tbody), () => {
                 const idx = index.indexOf(i);
                 if(idx !== -1) index.splice(idx);
                 if(!index.length) deleteKey(key);
             });
         }
-        else makeTrDefine2(key, id, makeCanvas(key, null, promise), () => deleteKey(key)).appendTo(tbody);
+        else makeTrDefine2(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
     };
     const deleteKey = key => {
         dqMap.delete(key);
@@ -314,19 +320,14 @@
         });
         return tr;
     };
-    const makeCanvas = (key, index, promise) => {
+    const makeCanvas = (key, index) => {
         const cv = $('<canvas>').prop({width: unitSize, height: unitSize}),
               ctx = cv.get(0).getContext('2d');
         ctx.mozImageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
         ctx.msImageSmoothingEnabled = false;
         ctx.imageSmoothingEnabled = false;
-        const f = () => {
-            ctx.clearRect(0, 0, unitSize, unitSize);
-            dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
-        };
-        f();
-        if(promise) promise.then(f);
+        dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
         return cv;
     };
     const openWindowLayer = () => {
