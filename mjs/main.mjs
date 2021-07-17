@@ -99,7 +99,7 @@ class Anime extends Sprite {
         }
         return now / anime * frame | 0;
     }
-    draw(ctx, x, y, {way}, diff){
+    draw(ctx, x, y, {way}, diff = 0){
         if(!this.isReady) return super.draw(ctx, x, y);
         const {img, _w, _h, w, h} = this,
               _x = _w * this.calcFrame(),
@@ -119,7 +119,7 @@ class AnimeSplit extends Anime {
             this.indexToXY = SpriteSplit.split(this.img, width, height);
         });
     }
-    draw(ctx, x, y, {way, index}, diff){
+    draw(ctx, x, y, {way, index}, diff = 0){
         if(!this.isReady) return super.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h} = this,
