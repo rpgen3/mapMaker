@@ -248,8 +248,8 @@
         if(!arr) return;
         const {next} = dqMap;
         let i = 0;
-        for(const v of arr){
-            const obj = {};
+        for(const id of arr){
+            const obj = {id};
             try {
                 if(isAnime){
                     const f = toInt(inputframe()),
