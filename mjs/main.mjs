@@ -25,6 +25,7 @@ class Sprite {
         });
     }
     adjust(width, height){ // 位置調整
+        [this._w, this._h] = [width, height];
         let w, h, x, y;
         const f = (w, h) => [unitSize, unitSize * (h / w)];
         if(width < height) {
@@ -49,8 +50,6 @@ class SpriteSplit extends Sprite {
         super({id}).promise.then(() => {
             if(!this.isReady) return;
             this.adjust(width, height);
-            this._w = width;
-            this._h = height;
             this.index = index;
             this.indexToXY = SpriteSplit.split(this.img, width, height);
         });
@@ -80,8 +79,6 @@ class Anime extends Sprite {
             const w = this.img.width / frame | 0,
                   h = this.img.height / way.length | 0;
             this.adjust(w, h);
-            this._w = w;
-            this._h = h;
             this.frame = frame;
             this.way = way;
             this.anime = 1200;
@@ -118,8 +115,6 @@ class AnimeSplit extends Anime {
         super({id, frame, way}).promise.then(() => {
             if(!this.isReady) return;
             this.adjust(width, height);
-            this._w = width;
-            this._h = height;
             this.index = index;
             this.indexToXY = SpriteSplit.split(this.img, width, height);
         });
