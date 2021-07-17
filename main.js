@@ -279,7 +279,6 @@
                   {promise} = dMap.set(k, obj);
             if(isSplit){
                 promise.then(() => {
-                    window.d = dMap;
                     const d = dMap.get(k),
                           index = [...d.indexToXY.keys()];
                     d.index = obj.index = index;
@@ -297,11 +296,11 @@
         const obj = dqMap.define.get(key),
               {id, index} = obj;
         if('index' in obj) {
-            for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i).appendTo(tbody), () => {
+            for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i), () => {
                 const idx = index.indexOf(i);
                 if(idx !== -1) index.splice(idx);
                 if(!index.length) deleteKey(key);
-            });
+            }).appendTo(tbody);
         }
         else makeTrDefine2(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
     };
@@ -400,18 +399,27 @@
             else makePalette(holder, k);
         }
     };
-    const makePalette = (elm, key, index) => {
+    const makePalette = (elm, key, index = null) => {
         const cv = makeCanvas(key, index).appendTo(elm).on('click',()=>{
-            if(!input.v) input.v = {};
             $(elm).find('canvas').removeClass('active');
-            if(input.v.key === key) input.v = null;
+            if(!input.v) input.v = {};
+            if(index === null){
+                if(input.v.key === key) input.v = null;
+                else {
+                    cv.addClass('active');
+                    input.v.key = key;
+                }
+            }
             else {
-                cv.addClass('active');
-                input.v.key = key;
-                if(index) input.v.index = index;
+                if(input.v.key === key && input.v.index === index) input.v = null;
+                else {
+                    cv.addClass('active');
+                    input.v.key = key;
+                    input.v.index = index;
+                }
             }
         });
-        if(input.v && input.v.key === key) cv.addClass('active');
+        if(input.v && input.v.key === key && (index === null || input.v.index === index)) cv.addClass('active');
     };
     const openWindowAll = () =>{
         const win = Win.make('コマンド一覧');
