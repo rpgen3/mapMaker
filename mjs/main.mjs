@@ -68,12 +68,12 @@ class SpriteSplit extends Sprite {
     }
 }
 class Anime extends Sprite {
-    constructor({id, flame, way}){
+    constructor({id, frame, way}){
         super({id}).promise.then(() => {
             if(this.err) return;
-            this.flame = flame;
+            this.frame = frame;
             this.way = way;
-            const w = this.img.width / flame | 0,
+            const w = this.img.width / frame | 0,
                   h = this.img.height / way.length | 0;
             this.adjust(w, h);
             this._w = w;
@@ -83,8 +83,8 @@ class Anime extends Sprite {
     }
     draw(ctx, x, y, {way}){
         if(this.err) return super.draw(ctx, x, y);
-        const {img, _w, _h, w, h, flame, anime} = this,
-              _x = (g_nowTime % anime / anime * flame | 0) * _w,
+        const {img, _w, _h, w, h, frame, anime} = this,
+              _x = (g_nowTime % anime / anime * frame | 0) * _w,
               _y = this.way.indexOf(way) * _h;
         ctx.drawImage(
             img,
@@ -94,10 +94,10 @@ class Anime extends Sprite {
     }
 }
 class AnimeSplit extends SpriteSplit {
-    constructor({id, flame, way, width, height, index}){
-        super({id, width: width * flame, height: height * way.length, index}).promise.then(() => {
+    constructor({id, frame, way, width, height, index}){
+        super({id, width: width * frame, height: height * way.length, index}).promise.then(() => {
             if(this.err) return;
-            this.flame = flame;
+            this.frame = frame;
             this.way = way;
             this.adjust(width, height);
             this._w = width;
@@ -108,8 +108,8 @@ class AnimeSplit extends SpriteSplit {
     draw(ctx, x, y, {way, index}){
         if(this.err) return super.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
-              {img, _w, _h, w, h, flame, anime} = this,
-              _xx = _x + (g_nowTime % anime / anime * flame | 0) * _w,
+              {img, _w, _h, w, h, frame, anime} = this,
+              _xx = _x + (g_nowTime % anime / anime * frame | 0) * _w,
               _yy = _y + this.way.indexOf(way) * _h;
         ctx.drawImage(
             img,
@@ -225,7 +225,7 @@ const player = new class {
         this.lastTime = 0;
         this._time = null;
         this.way = 's';
-        this.obj = new Anime({id: 'fFrt63r', flame: 2, way: 'wdsa'});
+        this.obj = new Anime({id: 'fFrt63r', frame: 2, way: 'wdsa'});
     }
     set(way){
         this.way = way;
@@ -273,7 +273,7 @@ const player = new class {
         if(g_nowTime - this.lastTime < 300) return;
         this.lastTime = g_nowTime;
         this.timeIdx = (this.timeIdx + 1) % this.times.length;
-        imgurMap.get(this.id).anime = this.times[this.timeIdx] * 5;
+        this.obj.anime = this.times[this.timeIdx] * 5;
     }
     put(v = null){
         const {z} = input;
