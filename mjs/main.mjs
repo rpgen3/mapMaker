@@ -59,10 +59,10 @@ class SpriteSplit extends Sprite {
     }
     draw(ctx, x, y, {index}){
         if(!this.isReady) return super.draw(ctx, x, y);
-        const [_x, _y] = this.indexToXY?.[index] || [0, 0],
+        const [_x, _y] = this.indexToXY?.[index].map(v => v * unitSize) || [0, 0],
               {img, _w, _h, w, h} = this;
         ctx.drawImage(
-            img, _x * unitSize, _y * unitSize, _w, _h,
+            img, _x, _y, _w, _h,
             this.x + x * unitSize, this.y + y * unitSize, w, h
         );
     }
@@ -87,7 +87,7 @@ class Anime extends Sprite {
               _x = (g_nowTime % anime / anime * frame | 0) * _w,
               _y = this.way.indexOf(way) * _h;
         ctx.drawImage(
-            img, _x * unitSize, _y * unitSize, _w, _h,
+            img, _x, _y, _w, _h,
             this.x + x * unitSize, this.y + y * unitSize, w, h
         );
     }
@@ -108,8 +108,8 @@ class AnimeSplit extends SpriteSplit {
         if(!this.isReady) return super.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h, frame, anime} = this,
-              _xx = _x + (g_nowTime % anime / anime * frame | 0) * _w,
-              _yy = _y + this.way.indexOf(way) * _h;
+              _xx = unitSize * _x + (g_nowTime % anime / anime * frame | 0) * _w,
+              _yy = unitSize * _y + this.way.indexOf(way) * _h;
         ctx.drawImage(
             img,
             _xx, _yy, _w, _h,
