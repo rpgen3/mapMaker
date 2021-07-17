@@ -82,7 +82,7 @@
             return [...new Array(2)].map(v => rpgen3.randInt(-5, 5) + now);
         }
     };
-    const toInt = str => Number(str?.().match(/[0-9]+/)?.[0]) || 0;
+    const toInt = str => Number(String(str).match(/[0-9]+/)?.[0]) || 0;
     const openWindowInit = async () => {
         const win = Win.make('パラメータを設定して初期化');
         if(!win) return;
@@ -201,7 +201,8 @@
                     'ツクールVX': [[3, 'sadw'], [32, 32]],
                     'ツクールMV': [[3, 'sadw'], [48, 48]],
                 }
-            }).elm.on('change', () => {
+            });
+            inputTemplate.elm.on('change', () => {
                 if(!inputTemplate()) return;
                 const [[frame, way], [width, height]] = inputTemplate();
                 inputframe(frame);
@@ -253,7 +254,7 @@
             const obj = {id};
             try {
                 if(isAnime){
-                    const f = toInt(inputframe()),
+                    const f = toInt(inputframe),
                           w = inputWay();
                     if(!f) throw 'フレーム数の値が不正です';
                     if(!/[wasd]/.test(w)) '方向の定義の値が不正です';
@@ -261,8 +262,8 @@
                     obj.way = w;
                 }
                 if(isSplit){
-                    const w = toInt(inputWidth()),
-                          h = toInt(inputHeight());
+                    const w = toInt(inputWidth),
+                          h = toInt(inputHeight);
                     if(!w || !h) '幅・高さの値が0です';
                     if(w > 64 || h > 64) '幅・高さの最大値は64pxです';
                     obj.width = w;
@@ -273,30 +274,30 @@
                 win.delete();
                 throw err;
             }
-            const k = next + i;
-            dMap.set(k, obj);
+            const k = next + i,
+                  {promise} = dMap.set(k, obj);
             if(isSplit){
                 const d = dMap.get(k),
                       index = [...d.indexToXY.keys()];
                 d.index = obj.index = index;
             }
             dqMap.define.set(k, obj);
-            makeTrDefine(tbody, k);
+            makeTrDefine(tbody, k, promise);
             i++;
         }
         win.delete();
     };
-    const makeTrDefine = (tbody, key) => {
+    const makeTrDefine = (tbody, key, promise) => {
         const obj = dqMap.define.get(key),
               {id, index} = obj;
         if('index' in obj) {
-            for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i), () => {
+            for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i, promise).appendTo(tbody), () => {
                 const idx = index.indexOf(i);
                 if(idx !== -1) index.splice(idx);
                 if(!index.length) deleteKey(key);
             });
         }
-        else makeTrDefine2(key, id, makeCanvas(key), () => deleteKey(key));
+        else makeTrDefine2(key, id, makeCanvas(key, null, promise), () => deleteKey(key)).appendTo(tbody);
     };
     const deleteKey = key => {
         dqMap.delete(key);
@@ -313,14 +314,19 @@
         });
         return tr;
     };
-    const makeCanvas = (key, index) => {
+    const makeCanvas = (key, index, promise) => {
         const cv = $('<canvas>').prop({width: unitSize, height: unitSize}),
               ctx = cv.get(0).getContext('2d');
         ctx.mozImageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
         ctx.msImageSmoothingEnabled = false;
         ctx.imageSmoothingEnabled = false;
-        dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
+        const f = () => {
+            ctx.clearRect(0, 0, unitSize, unitSize);
+            dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
+        };
+        f();
+        if(promise) promise.then(f);
         return cv;
     };
     const openWindowLayer = () => {
@@ -382,7 +388,6 @@
             value: '↓',
             save: true
         });
-        window.dqMap = dqMap;
         inputWay.elm.on('change', () => {
             if(!input.v) input.v = {};
             input.v.way = inputWay();
