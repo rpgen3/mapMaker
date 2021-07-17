@@ -38,7 +38,7 @@
         main(){
             Win.delete();
             input.z = 0;
-            input.v = -1;
+            input.v = null;
             zMap.clear();
             for(let i = 0; i < dqMap.info.depth; i++) zMap.set(i, true);
             zMap.set('order', [...zMap.keys()]);
@@ -116,11 +116,11 @@
         }).on('change', async ({target}) => {
             loadFile(await target.files[0].text());
         });
-        const input = rpgen3.addInputStr(elm,{
+        const inputText = rpgen3.addInputStr(elm,{
             label: '入力欄から',
             textarea: true
         });
-        $('<button>').appendTo(elm).text('読み込む').on('click', () => loadFile(input()));
+        $('<button>').appendTo(elm).text('読み込む').on('click', () => loadFile(inputText()));
     };
     const loadFile = str => {
         dqMap.input(str);
@@ -237,14 +237,15 @@
         }
         $('<div>').appendTo(elm).text('以下にURLかimgurIDを入力');
         $('<div>').appendTo(elm).text('複数の入力も可');
-        const input = rpgen3.addInputStr(elm,{
+        const inputImgur = rpgen3.addInputStr(elm,{
             label: '入力欄',
             textarea: true
         });
+        inputImgur.elm.focus();
         await new Promise(resolve => $('<button>').appendTo(elm).text('決定').on('click', resolve));
-        const urls = rpgen3.findURL(input()),
+        const urls = rpgen3.findURL(inputImgur()),
               arr = urls.length ? urls.filter(v => rpgen3.getDomain(v)[1] === 'imgur')
-        .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : input().match(/[0-9A-Za-z]+/g);
+        .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : inputImgur().match(/[0-9A-Za-z]+/g);
         if(!arr) return;
         const {next} = dqMap;
         let i = 0;
@@ -279,15 +280,14 @@
                       index = [...d.indexToXY.keys()];
                 d.index = obj.index = index;
             }
-            dqMap.set(k, obj);
+            dqMap.define.set(k, obj);
             makeTrDefine(tbody, k);
             i++;
         }
         win.delete();
     };
     const makeTrDefine = (tbody, key) => {
-        const {define} = dqMap,
-              obj = define.get(key),
+        const obj = dqMap.define.get(key),
               {id, index} = obj;
         if('index' in obj) {
             for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i), () => {
@@ -316,6 +316,10 @@
     const makeCanvas = (key, index) => {
         const cv = $('<canvas>').prop({width: unitSize, height: unitSize}),
               ctx = cv.get(0).getContext('2d');
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = false;
         dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
         return cv;
     };
@@ -378,10 +382,11 @@
             value: '↓',
             save: true
         });
+        window.dqMap = dqMap;
         inputWay.elm.on('change', () => {
             if(!input.v) input.v = {};
             input.v.way = inputWay();
-        });
+        }).trigger('change');
         const holder = $('<div>').appendTo(elm);
         for(const [k,v] of dqMap.define) {
             const {id, index} = v;
@@ -389,25 +394,18 @@
             else makePalette(holder, k);
         }
     };
-    const makePalette = (elm, key, index = null) => {
+    const makePalette = (elm, key, index) => {
         const cv = makeCanvas(key, index).appendTo(elm).on('click',()=>{
-            $(elm).find('canvas').removeClass('active');
-            cv.addClass('active');
             if(!input.v) input.v = {};
-            const {v} = input;
-            v.key = key;
-            if(index === null) delete v.index;
-            else v.index = index;
+            $(elm).find('canvas').removeClass('active');
+            if(input.v.key === key) input.v = null;
+            else {
+                cv.addClass('active');
+                input.v.key = key;
+                if(index) input.v.index = index;
+            }
         });
-        const {v} = input;
-        if(v) {
-            if((()=>{
-                if(index === null) {
-                    if(v.key === key) return true;
-                }
-                else if(v.key === key && v.index === index) return true;
-            })()) cv.addClass('active');
-        }
+        if(input.v && input.v.key === key) cv.addClass('active');
     };
     const openWindowAll = () =>{
         const win = Win.make('コマンド一覧');
