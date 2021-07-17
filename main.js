@@ -331,7 +331,6 @@
         dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
         return cv;
     };
-    window.zMap = zMap;
     const openWindowLayer = () => {
         const win = Win.make('レイヤー操作');
         if(!win) return;
@@ -355,7 +354,7 @@
         });
     };
     const makeTrLayer = z => {
-        const tr = $('<tr>').on('click',()=>{
+        const tr = $('<tr>').prop({z}).on('click',()=>{
             tr.parent().children().removeClass('active');
             tr.addClass('active');
             input.z = z;
