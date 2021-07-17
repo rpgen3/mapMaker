@@ -19,9 +19,9 @@ class Sprite {
         this.promise = rpgen3.imgur.load(id).then(img => {
             this.img = img;
             this.adjust(img.width, img.height);
+            this.isReady = true;
         }).catch(() => {
             this.img = sysImg[1];
-            this.err = true;
         });
     }
     adjust(w, h){ // 位置調整
@@ -41,7 +41,7 @@ class Sprite {
 class SpriteSplit extends Sprite {
     constructor({id, width, height, index}){
         super({id}).promise.then(() => {
-            if(this.err) return;
+            if(!this.isReady) return;
             this.index = index;
             this.split(width, height);
             this.adjust(width, height);
@@ -58,7 +58,7 @@ class SpriteSplit extends Sprite {
         this.indexToXY = ar;
     }
     draw(ctx, x, y, {index}){
-        if(this.err) return super.draw(ctx, x, y);
+        if(!this.isReady) return super.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h} = this;
         ctx.drawImage(
@@ -70,7 +70,7 @@ class SpriteSplit extends Sprite {
 class Anime extends Sprite {
     constructor({id, frame, way}){
         super({id}).promise.then(() => {
-            if(this.err) return;
+            if(!this.isReady) return;
             this.frame = frame;
             this.way = way;
             const w = this.img.width / frame | 0,
@@ -82,7 +82,7 @@ class Anime extends Sprite {
         });
     }
     draw(ctx, x, y, {way}){
-        if(this.err) return super.draw(ctx, x, y);
+        if(!this.isReady) return super.draw(ctx, x, y);
         const {img, _w, _h, w, h, frame, anime} = this,
               _x = (g_nowTime % anime / anime * frame | 0) * _w,
               _y = this.way.indexOf(way) * _h;
@@ -96,7 +96,7 @@ class Anime extends Sprite {
 class AnimeSplit extends SpriteSplit {
     constructor({id, frame, way, width, height, index}){
         super({id, width: width * frame, height: height * way.length, index}).promise.then(() => {
-            if(this.err) return;
+            if(!this.isReady) return;
             this.frame = frame;
             this.way = way;
             this.adjust(width, height);
@@ -106,7 +106,7 @@ class AnimeSplit extends SpriteSplit {
         });
     }
     draw(ctx, x, y, {way, index}){
-        if(this.err) return super.draw(ctx, x, y);
+        if(!this.isReady) return super.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h, frame, anime} = this,
               _xx = _x + (g_nowTime % anime / anime * frame | 0) * _w,
