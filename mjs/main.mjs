@@ -24,14 +24,20 @@ class Sprite {
             this.img = sysImg[1];
         });
     }
-    adjust(w, h){ // 位置調整
-        const f = x => {
-            const a = unitSize,
-                  b = unitSize * x;
-            return [a, b | 0, 0, unitSize - b >> 1];
-        };
-        if(w > h) [this.w, this.h, this.x, this.y] = f(h / w);
-        else [this.h, this.w, this.y, this.x] = f(w / h);
+    adjust(width, height){ // 位置調整
+        let w, h, x, y;
+        const f = (w, h) => [unitSize, unitSize * (h / w)];
+        if(w < h) {
+            [w, h] = f(w, h);
+            x = 0;
+            y = unitSize - h;
+        }
+        else {
+            [h, w] = f(h, w);
+            y = 0;
+            x = (unitSize - w) / 2;
+        }
+        [this.w, this.h, this.x, this.y] = [w, h, x, y].map(Math.floor);
     }
     draw(ctx, x, y){
         const {img, w, h} = this;
@@ -169,20 +175,16 @@ const frame = new class {
               [_y, _yy] = this._switchF(player.nowY, pivotH, maxY, player.y);
         this.x = _x;
         this.y = _y;
-        const {x, y, w, h} = this;
-        let i = 0;
-        for(const idx of zMap.get('order')) {
-            if(!zMap.get(idx)) continue;
-            for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) this.draw({
-                ctx,
-                x: k + x,
-                y: j + y,
-                z: i,
-                _x: k + _xx,
-                _y: j + _yy
-            });
-            i++;
-        }
+        const {x, y, w, h} = this,
+              zArr = zMap.get('order').filter(v => zMap.get(v));
+        for(const z of zArr) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) this.draw({
+            ctx,
+            x: k + x,
+            y: j + y,
+            z,
+            _x: k + _xx,
+            _y: j + _yy
+        });
     }
     draw({ctx, x, y, z, _x, _y}){
         if(dqMap.isOut(x, y, z)) return;
