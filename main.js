@@ -188,7 +188,7 @@
         const win = Win.make('imgurIDを新規追加');
         if(!win) return;
         const {elm} = win;
-        let inputFlame, inputWay, inputWidth, inputHeight;
+        let inputframe, inputWay, inputWidth, inputHeight;
         if(isAnime){
             const inputTemplate = rpgen3.addSelect(elm,{
                 label: 'テンプレ入力',
@@ -203,15 +203,15 @@
                 }
             }).elm.on('change', () => {
                 if(!inputTemplate()) return;
-                const [[flame, way], [width, height]] = inputTemplate();
-                inputFlame(flame);
+                const [[frame, way], [width, height]] = inputTemplate();
+                inputframe(frame);
                 inputWay(way);
                 if(isSplit){
                     inputWidth(width);
                     inputHeight(height);
                 }
             });
-            inputFlame = rpgen3.addInputStr(elm,{
+            inputframe = rpgen3.addInputStr(elm,{
                 label: 'フレーム数',
                 value: 3,
                 save: true
@@ -252,11 +252,11 @@
             const obj = {};
             try {
                 if(isAnime){
-                    const f = toInt(inputFlame()),
+                    const f = toInt(inputframe()),
                           w = inputWay();
                     if(!f) throw 'フレーム数の値が不正です';
                     if(!/[wasd]/.test(w)) '方向の定義の値が不正です';
-                    obj.flame = f;
+                    obj.frame = f;
                     obj.way = w;
                 }
                 if(isSplit){
