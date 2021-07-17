@@ -160,7 +160,7 @@ const toStr = map => {
         }
         a.push([k, ar.join(', ')]);
     }
-    
+    return a;
 };
 const stringify = ({width, height, depth, define, data, zArr}) => {
     let max = 0;
