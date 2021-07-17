@@ -39,7 +39,7 @@ class Sprite {
     }
 }
 class SpriteSplit extends Sprite {
-    constructor({id, width, height = width, index}){
+    constructor({id, width, height, index}){
         super({id}).promise.then(() => {
             if(this.err) return;
             this.index = index;
@@ -94,7 +94,7 @@ class Anime extends Sprite {
     }
 }
 class AnimeSplit extends SpriteSplit {
-    constructor({id, flame, way, width, height = width, index}){
+    constructor({id, flame, way, width, height, index}){
         super({id, width: width * flame, height: height * way.length, index}).promise.then(() => {
             if(this.err) return;
             this.flame = flame;
