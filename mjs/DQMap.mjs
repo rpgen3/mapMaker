@@ -147,7 +147,8 @@ const toStr = map => {
     const a = [];
     for(const [k,v] of map){
         const ar = [],
-              {frame, way, width, height, index} = v;
+              {id, frame, way, width, height, index} = v;
+        ar.push(id);
         if('way' in v){
             ar.push(frame);
             ar.push(way);
