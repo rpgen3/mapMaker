@@ -51,8 +51,8 @@ class SpriteSplit extends Sprite {
     }
     split(w, h){
         const {width, height} = this.img,
-              maxX = width % w,
-              maxY = height % h,
+              maxX = width / w,
+              maxY = height / h,
               ar = [];
         for(let i = 0; i < maxY; i++) for(let j = 0; j < maxX; j++) ar.push([j, i]);
         this.indexToXY = ar;
