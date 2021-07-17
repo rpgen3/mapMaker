@@ -305,7 +305,7 @@
         else makeTrDefine2(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
     };
     const deleteKey = key => {
-        dqMap.delete(key);
+        dqMap.define.delete(key);
         dMap.delete(key);
     };
     const makeTrDefine2 = (key, id, cv, remove) => {
@@ -421,17 +421,33 @@
         });
         if(input.v && input.v.key === key && (index === null || input.v.index === index)) cv.addClass('active');
     };
+    const openWindowConfig = () => {
+        const win = Win.make('設定');
+        if(!win) return;
+        const {elm} = win,
+              half = unitSize / 2 | 0;
+        const inputY = rpgen3.addInputNum(elm,{
+            label: '歩行グラずらし度',
+            value: input.y,
+            min: -half,
+            max: half
+        });
+        inputY.elm.on('input', v => {
+            input.y = inputY();
+        });
+    };
     const openWindowAll = () =>{
         const win = Win.make('コマンド一覧');
         if(!win) return;
         const {elm} = win;
         [
-            [openWindowInit, '初期化'],
-            [openWindowImport, '読み込み'],
-            [openWindowExport, '書き出し'],
             [openWindowDefine, '[D]定義リスト'],
             [openWindowLayer, '[L]レイヤー操作'],
             [openWindowPalette, '[P]パレット選択'],
+            [openWindowInit, '初期化'],
+            [openWindowImport, '読み込み'],
+            [openWindowExport, '書き出し'],
+            [openWindowConfig, '設定']
         ].map(([func, ttl]) => $('<button>').appendTo(elm).text(ttl).on('click', func));
     };
     $(window).on('keydown',({key})=>{
