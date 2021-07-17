@@ -179,8 +179,10 @@ const frame = new class {
         }
     }
     draw(ctx, x, y, z){
-        if(dqMap.isEmpty(x, y, z)) return;
-        const {key, index, way} = dqMap.data[z][y][x];
+        if(dqMap.isOut(x, y, z)) return;
+        const elm = dqMap.data[z][y][x];
+        if(!elm) return;
+        const {key, index, way} = elm;
         dMap.get(key)?.draw(ctx, x, y, {index, way});
     }
     _pivot(n){
