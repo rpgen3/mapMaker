@@ -35,7 +35,7 @@ class Sprite {
     }
     draw(ctx, x, y){
         const {img, w, h} = this;
-        ctx.drawImage(img, this.x + x, this.y + y, w, h);
+        ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
     }
 }
 class SpriteSplit extends Sprite {
@@ -63,7 +63,7 @@ class SpriteSplit extends Sprite {
               {img, _w, _h, w, h} = this;
         ctx.drawImage(
             img, _x, _y, _w, _h,
-            this.x + x, this.y + y, w, h
+            this.x + x * unitSize, this.y + y * unitSize, w, h
         );
     }
 }
@@ -89,7 +89,7 @@ class Anime extends Sprite {
         ctx.drawImage(
             img,
             _x, _y, _w, _h,
-            this.x + x, this.y + y, w, h
+            this.x + x * unitSize, this.y + y * unitSize, w, h
         );
     }
 }
@@ -114,7 +114,7 @@ class AnimeSplit extends SpriteSplit {
         ctx.drawImage(
             img,
             _xx, _yy, _w, _h,
-            this.x + x, this.y + y, w, h
+            this.x + x * unitSize, this.y + y * unitSize, w, h
         );
     }
 }
@@ -255,7 +255,6 @@ const player = new class {
     }
     draw(ctx){
         const {obj, nowX, nowY, way} = this;
-          g_debug = nowX + ' ' + nowY;
         obj.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {way});
     }
     goto(x, y){
