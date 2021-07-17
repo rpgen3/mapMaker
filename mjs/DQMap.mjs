@@ -23,7 +23,7 @@ export class DQMap {
         if(this.isOut(x, y, z)) return;
         const {define, data} = this,
               a = data[z][y],
-              putNull = () => isEqual(a[x], null) && (a[x] = null);
+              putNull = () => isEqual(a[x], null) || (a[x] = null);
         if(v === null) return putNull();
         const {key, index, way} = v;
         if(!define.has(key)) return putNull();
@@ -37,7 +37,7 @@ export class DQMap {
             if(obj.way.includes(way)) elm.way = way;
             else return putNull();
         }
-        if(isEqual(a[x], elm)) a[x] = elm;
+        if(!isEqual(a[x], elm)) a[x] = elm;
     }
     isOut(x, y, z){
         const {width, height, depth} = this.info;
