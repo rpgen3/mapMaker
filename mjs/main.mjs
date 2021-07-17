@@ -274,7 +274,7 @@ const player = new class {
     }
     draw(ctx){
         const {obj, nowX, nowY, way} = this;
-        obj.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {way});
+        obj.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {way}, input.y);
     }
     goto(x, y){
         const {width, height} = dqMap.info;
