@@ -203,7 +203,7 @@
                 }
             }).elm.on('change', () => {
                 if(!inputTemplate()) return;
-                const [[frame, way] = [], [width, height] = []] = inputTemplate();
+                const [[frame, way], [width, height]] = inputTemplate();
                 inputframe(frame);
                 inputWay(way);
                 if(isSplit){
