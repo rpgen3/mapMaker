@@ -175,9 +175,9 @@
             });
         })(elm);
         const addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on(
-            'click', openWindowInputImgur(tbody, isAnime, isSplit)
-            .then(()=>msg('読み込みが正常に完了しました'))
-            .catch(err=>msg(err, true))
+            'click', () => openWindowInputImgur(tbody, isAnime, isSplit)
+            .then(() => msg('読み込みが正常に完了しました'))
+            .catch(err => msg(err, true))
         );
         addBtn('単体のマップチップ');
         addBtn('単体の歩行グラ', true);
