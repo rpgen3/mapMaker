@@ -166,19 +166,19 @@
     const openWindowSelect = async tbody => {
         const win = Win.make('追加する素材のタイプを選択');
         if(!win) return;
-        const msg = (()=>{
-            const elm = $('<div>').appendTo(elm);
-            return (str, isError) => $('<span>').appendTo(elm.empty()).text(`${str}(${rpgen3.getTime()})`).css({
+        const {elm} = win;
+        const msg = (parentNode => {
+            const holder = $('<div>').appendTo(parentNode);
+            return (str, isError) => $('<span>').appendTo(holder.empty()).text(`${str}(${rpgen3.getTime()})`).css({
                 color: isError ? 'red' : 'blue',
                 backgroundColor: isError ? 'pink' : 'lightblue'
             });
-        })();
-        const {elm} = win,
-              addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on(
-                  'click', openWindowInputImgur(tbody, isAnime, isSplit)
-                  .then(()=>msg('読み込みが正常に完了しました'))
-                  .catch(err=>msg(err, true))
-              );
+        })(elm);
+        const addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on(
+            'click', openWindowInputImgur(tbody, isAnime, isSplit)
+            .then(()=>msg('読み込みが正常に完了しました'))
+            .catch(err=>msg(err, true))
+        );
         addBtn('単体のマップチップ');
         addBtn('単体の歩行グラ', true);
         addBtn('複数のマップチップ', false, true);
