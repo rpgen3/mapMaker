@@ -133,14 +133,15 @@
         const win = Win.make('現在の編集内容を書き出す');
         if(!win) return;
         const {elm} = win;
-        const bool = rpgen3.addInputBool(elm,{
-            label: '空値に半角スペースを使用する',
+        await new Promise(resolve => $('<button>').appendTo(elm).text('書き出し開始').on('click', resolve));
+        const isNoSpace = rpgen3.addInputBool(elm,{
+            label: '半角スペースを削除する',
             save: true
         });
-        await new Promise(resolve => $('<button>').appendTo(elm).text('書き出し開始').on('click', resolve));
-        const str = dqMap.output(bool() ? ' ' : '', zMap.get('order'));
-        $('<button>').appendTo(elm).text('クリップボードにコピー').on('click', () => rpgen3.copy(str));
-        $('<button>').appendTo(elm).text('txtファイルとして保存').on('click', () => makeTextFile('mapMaker', str));
+        const f = str => isNoSpace() ? str.replace(/ /g,'') : str;
+        const str = dqMap.output(zMap.get('order'));
+        $('<button>').appendTo(elm).text('クリップボードにコピー').on('click', () => rpgen3.copy(f(str)));
+        $('<button>').appendTo(elm).text('txtファイルとして保存').on('click', () => makeTextFile('mapMaker', f(str)));
     };
     const makeTextFile = (ttl, str) => $('<a>').prop({
         download: ttl + '.txt',
@@ -297,8 +298,9 @@
               {id, index} = obj;
         if('index' in obj) {
             for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i), () => {
-                const idx = index.indexOf(i);
-                if(idx !== -1) index.splice(idx);
+                const {index} = dqMap.define.get(key),
+                      idx = index.indexOf(i);
+                if(idx !== -1) index.splice(idx, 1);
                 if(!index.length) deleteKey(key);
             }).appendTo(tbody);
         }
@@ -329,6 +331,7 @@
         dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
         return cv;
     };
+    window.zMap = zMap;
     const openWindowLayer = () => {
         const win = Win.make('レイヤー操作');
         if(!win) return;
