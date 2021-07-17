@@ -255,6 +255,7 @@ const player = new class {
     }
     draw(ctx){
         const {obj, nowX, nowY, way} = this;
+          g_debug = nowX + ' ' + nowY;
         obj.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {way});
     }
     goto(x, y){
