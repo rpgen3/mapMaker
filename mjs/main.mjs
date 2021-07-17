@@ -1,5 +1,5 @@
 export {cv, dqMap, update, zMap, input, dMap, unitSize};
-const input = {},
+const input = {y: 6, z: 0, v: null},
       zMap = new Map;
 let g_debug;
 const {importAll} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
@@ -94,7 +94,7 @@ class Anime extends Sprite {
               _y = this.way.indexOf(way) * _h;
         ctx.drawImage(
             img, _x, _y, _w, _h,
-            this.x + x * unitSize, this.y + y * unitSize, w, h
+            this.x + x * unitSize, this.y + y * unitSize - input.y, w, h
         );
     }
 }
@@ -119,7 +119,7 @@ class AnimeSplit extends SpriteSplit {
         ctx.drawImage(
             img,
             _xx, _yy, _w, _h,
-            this.x + x * unitSize, this.y + y * unitSize, w, h
+            this.x + x * unitSize, this.y + y * unitSize - input.y, w, h
         );
     }
 }
