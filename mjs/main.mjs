@@ -62,7 +62,7 @@ class SpriteSplit extends Sprite {
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h} = this;
         ctx.drawImage(
-            img, _x, _y, _w, _h,
+            img, _x * unitSize, _y * unitSize, _w, _h,
             this.x + x * unitSize, this.y + y * unitSize, w, h
         );
     }
@@ -87,8 +87,7 @@ class Anime extends Sprite {
               _x = (g_nowTime % anime / anime * frame | 0) * _w,
               _y = this.way.indexOf(way) * _h;
         ctx.drawImage(
-            img,
-            _x, _y, _w, _h,
+            img, _x * unitSize, _y * unitSize, _w, _h,
             this.x + x * unitSize, this.y + y * unitSize, w, h
         );
     }
