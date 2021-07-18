@@ -355,17 +355,14 @@ const setText = new class {
         this.size = unitSize / 3;
     }
     main(toString){
-        this.cnt += toString().split('\n').length;
         return new SimpleText({
             text: {toString},
             size: this.size,
             color: 'blue'
-        }).goto(0, cv.h - this.size * 1.5 * this.cnt | 0);
+        }).goto(0, cv.h - this.size * 1.5 * ++this.cnt | 0);
     }
 };
-setText.main(() => [
-    `[SPACE]メニューを開く`,
-    `[Z]設置 [X]削除`,
-    `[F]${player.times[0]/player.times[player.timeIdx]}倍速`,
-    `座標(${player.x},${player.y})`
-].join('\n'));
+setText.main(() => `座標(${player.x},${player.y})`);
+setText.main(() => `[F]${player.times[0]/player.times[player.timeIdx]}倍速`);
+setText.main(() => `[Z]設置 [X]削除`);
+setText.main(() => `[SPACE]メニューを開く`);
