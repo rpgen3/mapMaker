@@ -8,6 +8,7 @@
         'off'
     ].map(v => getCSS(`https://rpgen3.github.io/mapMaker/css/${v}.css`)));
     await getScript('https://code.jquery.com/jquery-3.3.1.min.js');
+    const $ = window.$;
     getScript('https://code.jquery.com/ui/1.12.1/jquery-ui.min.js');
     const html = $('body').empty().css({
         'text-align': 'center',
@@ -36,8 +37,9 @@
             $(this.cv).hide();
         }
         main(){
+            Win.deleteAll();
             input.z = 0;
-            input.v = null;
+            input.v.erase = true;
             zMap.clear();
             for(let i = 0; i < dqMap.info.depth; i++) zMap.set(i, true);
             zMap.set('order', [...zMap.keys()]);
@@ -64,9 +66,12 @@
             const {m} = this;
             if(m.has(ttl)){
                 const win = m.get(ttl);
-                if(win.exist) return win.focus();
+                if(win.exist) {
+                    win.focus();
+                    return false;
+                }
             }
-            const win = new rpgen5.Jsframe(title);
+            const win = new rpgen5.Jsframe(ttl);
             m.set(ttl, win.goto(...this._xy(win)));
             return win;
         }
@@ -78,6 +83,9 @@
                 return this._xy(win);
             }
             return [...new Array(2)].map(v => rpgen3.randInt(-5, 5) + now);
+        }
+        deleteAll(){
+            for(const [k,v] of this.m) v.delete();
         }
     };
     const toInt = str => Number(String(str).match(/[0-9]+/)?.[0]) || 0,
@@ -141,8 +149,8 @@
             label: '半角スペースを削除する',
             save: true
         });
-        const f = str => isNoSpace() ? str.replace(/ /g,'') : str;
-        const str = dqMap.output(zMap.get('order'));
+        const str = dqMap.output(zMap.get('order')),
+              f = str => isNoSpace() ? str.replace(/ /g,'') : str;
         $('<button>').appendTo(elm).text('クリップボードにコピー').on('click', () => rpgen3.copy(f(str)));
         $('<button>').appendTo(elm).text('txtファイルとして保存').on('click', () => makeTextFile('mapMaker', f(str)));
     };
@@ -164,7 +172,7 @@
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table),
               {define} = dqMap;
-        for(const k of define.keys()) makeTrDefine(tbody, k);
+        for(const k of define.keys()) addTr(tbody, k);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => openWindowSelect(tbody));
     };
     const openWindowSelect = async tbody => {
@@ -183,11 +191,16 @@
             .then(() => msg('読み込みが正常に完了しました'))
             .catch(err => msg(err, true))
         );
-        addBtn('単体のマップチップ');
-        addBtn('単体の歩行グラ', true);
-        addBtn('複数のマップチップ', false, true);
-        addBtn('複数の歩行グラ', true, true);
+        addBtn(mapTipType[0]);
+        addBtn(mapTipType[1], true);
+        addBtn(mapTipType[2], false, true);
+        addBtn(mapTipType[3], true, true);
     };
+    const mapTipType = (()=>{
+        const a = ['単体', '複数'],
+              b = ['マップチップ', '歩行グラ'];
+        return [...new Array(4)].map((v,i) => `${a[i >> 1]}の${b[i % 2]}`);
+    })();
     const openWindowInputImgur = async (tbody, isAnime, isSplit) => {
         const win = Win.make('imgurIDを新規追加');
         if(!win) return;
@@ -288,30 +301,31 @@
             }
             promise.then(() => {
                 dqMap.define.set(k, obj);
-                makeTrDefine(tbody, k);
+                addTr(tbody, k);
+                addPalette(k);
             });
             i++;
         }
         win.delete();
     };
-    const makeTrDefine = (tbody, key) => {
+    const addTr = (tbody, key) => {
         const obj = dqMap.define.get(key),
               {id, index} = obj;
         if('index' in obj) {
-            for(const i of index) makeTrDefine2(`${key}-${i}`, id, makeCanvas(key, i), () => {
+            for(const i of index) makeTr(`${key}-${i}`, id, makeCanvas(key, i), () => {
                 const {index} = dqMap.define.get(key),
                       idx = index.indexOf(i);
                 if(idx !== -1) index.splice(idx, 1);
                 if(!index.length) deleteKey(key);
             }).appendTo(tbody);
         }
-        else makeTrDefine2(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
+        else makeTr(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
     };
     const deleteKey = key => {
         dqMap.define.delete(key);
         dMap.delete(key);
     };
-    const makeTrDefine2 = (key, id, cv, remove) => {
+    const makeTr = (key, id, cv, remove) => {
         const tr = $('<tr>');
         $('<th>').appendTo(tr).text(key);
         $('<td>').appendTo(tr).text(id);
@@ -346,21 +360,22 @@
             tbody.children().each((i,e)=>arr.push(Number($(e).prop('z'))));
             zMap.set('order', arr);
         });
-        for(const z of zMap.keys()) if(!isNaN(z)) makeTrLayer(z).appendTo(tbody);
+        for(const z of zMap.keys()) if(!isNaN(z)) addTrLayer(z).appendTo(tbody);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => {
             dqMap.data.push(dqMap.make());
             const z = dqMap.info.depth++;
             zMap.set(z, true).get('order').push(z);
-            makeTrLayer(z).appendTo(tbody);
+            addTrLayer(z).appendTo(tbody);
         });
     };
-    const makeTrLayer = z => {
+    const activeClassL = 'activeLayer';
+    const addTrLayer = z => {
         const tr = $('<tr>').prop({z}).on('click',()=>{
-            tr.parent().children().removeClass('active');
-            tr.addClass('active');
+            $('.' + activeClassL).removeClass(activeClassL);
+            tr.addClass(activeClassL);
             input.z = z;
         });
-        if(input.z === z) tr.addClass('active');
+        if(input.z === z) tr.addClass(activeClassL);
         $('<th>').appendTo(tr).text(`レイヤー${z}`);
         $('<button>').appendTo($('<td>').appendTo(tr)).text('非表示').on('click',()=>{
             tr.toggleClass('off');
@@ -376,10 +391,22 @@
         });
         return tr;
     };
+    const paletteClass = i => `palletClass${i}`,
+          paletteHolderId = 'palletHolderId',
+          paletteTitle = 'パレット選択';
     const openWindowPalette = () => {
-        const win = Win.make('パレット選択');
+        const win = Win.make(paletteTitle);
         if(!win) return;
         const {elm} = win;
+        const selectTipType = rpgen3.addSelect(elm, {
+            label: '表示するもの',
+            list: mapTipType,
+            save: true
+        });
+        selectTipType.elm.on('change', () => {
+            holder.children().hide();
+            holder.find('.' + paletteClass(mapTipType.indexOf(selectTipType()))).show();
+        });
         const inputWay = rpgen3.addSelect(elm, {
             label: '人物の向き',
             list: {
@@ -395,34 +422,34 @@
             if(!input.v) input.v = {};
             input.v.way = inputWay();
         }).trigger('change');
-        const holder = $('<div>').appendTo(elm);
-        for(const [k,v] of dqMap.define) {
-            const {id, index} = v;
-            if('index' in v) for(const i of index) makePalette(holder, k, i);
-            else makePalette(holder, k);
-        }
+        const holder = $('<div>').appendTo(elm).prop('id', paletteHolderId);
+        for(const [k,v] of dqMap.define) addPalette(k);
     };
-    const makePalette = (elm, key, index = null) => {
-        const cv = makeCanvas(key, index).appendTo(elm).on('click',()=>{
-            $(elm).find('canvas').removeClass('active');
-            if(!input.v) input.v = {};
-            if(index === null){
-                if(input.v.key === key) input.v = null;
-                else {
-                    cv.addClass('active');
-                    input.v.key = key;
-                }
+    const addPalette = key => {
+        const win = Win.get(paletteTitle);
+        if(!win) return;
+        const elm = win.elm.find('#' + paletteHolderId),
+              obj = dqMap.define.get(key),
+              isAnime = 'way' in obj,
+              isSplit = 'index' in obj;
+        if(isSplit) for(const index of obj.index) makePalette(isAnime, key, index).appendTo(elm);
+        else makePalette(isAnime, key).appendTo(elm);
+    };
+    const activeClassP = 'activePalette';
+    const makePalette = (isAnime, key, index = null) => {
+        const isSplit = index !== null;
+        const cv = makeCanvas(key, index).on('click', () => {
+            const flag = cv.hasClass(activeClassP);
+            input.v.erase = flag;
+            $('.' + activeClassP).removeClass(activeClassP);
+            if(!flag){
+                cv.addClass(activeClassP);
+                input.v.key = key;
+                if(isSplit) input.v.index = index;
             }
-            else {
-                if(input.v.key === key && input.v.index === index) input.v = null;
-                else {
-                    cv.addClass('active');
-                    input.v.key = key;
-                    input.v.index = index;
-                }
-            }
-        });
-        if(input.v && input.v.key === key && (index === null || input.v.index === index)) cv.addClass('active');
+        }).addClass(paletteClass(isSplit && isAnime ? 3 : isSplit ? 2 : isAnime ? 1 : 0));
+        if(!input.v.erase && input.v.key === key && (!isSplit || input.v.index === index)) cv.addClass(activeClassP);
+        return cv;
     };
     const openWindowConfig = () => {
         const win = Win.make('設定');
