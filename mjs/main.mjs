@@ -1,6 +1,6 @@
 export {cv, dqMap, update, zMap, input, dMap, unitSize};
 const unitSize = 48,
-      input = {y: 6, z: 0, v: null},
+      input = {y: 6, z: 0, v: {erase: true}},
       zMap = new Map;
 let g_debug;
 const {importAll} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
@@ -298,7 +298,7 @@ const player = new class {
         const {z} = input;
         if(!zMap.get(z)) return;
         const {x, y} = this;
-        dqMap.put(x, y, z, v);
+        dqMap.put(x, y, z, v === null || v.erase ? null : v);
     }
 };
 const rpgen4 = await importAll([
