@@ -1,12 +1,12 @@
-.activePalette {
-    padding: 0.5em 1em;
-    margin: 2em 0;
-    border: double 5px #4ec4d3;
-}
-
 canvas[class^='palletClass']:hover {
     padding: 0.5em 1em;
     margin: 2em 0;
     background: #f5b5c6;
-    border: dashed 2px #e81c52;
+    border: dashed 2px #4ec4d3;
+}
+
+.activePalette {
+    padding: 0.5em 1em;
+    margin: 2em 0;
+    border: double 5px #e81c52;
 }
