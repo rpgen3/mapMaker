@@ -27,7 +27,7 @@
         'Jsframe'
     ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
     const {
-        cv, dqMap, update, zMap, input, dMap, unitSize,
+        cv, dqMap, update, zMap, input, dMap, unitSize, player,
         Jsframe
     } = rpgen5;
     const init = new class {
@@ -474,6 +474,24 @@
         inputY.elm.on('input', v => {
             input.y = inputY();
         });
+        [
+            ['goto', {
+                label: '座標移動',
+                value: `${player.x}, ${player.y}`
+            }],
+            ['dressUp', {
+                label: '着替える',
+                save: true
+            }]
+        ].map(([func, param]) => {
+            const input = rpgen3.addInputStr(elm, param);
+            input.elm.on('change',()=>{
+                const m = input().match(/[0-9]+/g);
+                if(!m || m.length < 2) return;
+                player[func](...m.map(Number));
+            });
+        });
+        $('<button>').appendTo(elm).text('デフォルト衣装').on('click', () => player.dressUp());
     };
     const openWindowAll = () =>{
         const win = Win.make('コマンド一覧');
