@@ -1,0 +1,10 @@
+.activePalette {
+    padding: 0.5em 1em;
+    margin: 2em 0;
+    background: #f5b5c6;
+    border: dashed 2px #e81c52;
+}
+
+canvas[class^='palletClass']:hover {
+  background-color:rgba(127, 127, 0, 0.6);
+}
