@@ -304,7 +304,7 @@ const rpgen4 = await importAll([
     'layer'
 ].map(v => `https://rpgen3.github.io/game/export/${v}.mjs`));
 const {isKeyDown, layer} = rpgen4,
-      cv = new rpgen4.Canvas(document.body).set(0.9, 0.9);
+      cv = new rpgen4.Canvas(document.body).set(0.95, 0.95);
 const rpgen5 = await importAll([
     'DQMap'
 ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
