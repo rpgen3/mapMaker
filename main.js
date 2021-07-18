@@ -426,7 +426,7 @@
         inputWay.elm.on('change', () => {
             if(!input.v) input.v = {};
             input.v.way = inputWay();
-        });
+        }).trigger('change');
         const holder = $('<div>').appendTo(elm).prop('id', paletteHolderId);
         selectTipType.elm.trigger('change');
         for(const [k,v] of dqMap.define) addPalette(k);
@@ -498,6 +498,4 @@
             case 'p': return openWindowPalette();
         }
     });
-    window.dMap = dMap;
-    window.v = input.v;
 })();
