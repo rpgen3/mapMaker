@@ -281,8 +281,8 @@ const player = new class {
     }
     goto(x, y){
         const {width, height} = dqMap.info;
-        this.x = x < 0 ? 0 : x >= width ? width - 1 : x;
-        this.y = y < 0 ? 0 : y >= height ? height - 1 : y;
+        this.x = (x < 0 ? 0 : x >= width ? width - 1 : x) | 0;
+        this.y = (y < 0 ? 0 : y >= height ? height - 1 : y) | 0;
     }
     move(x, y){
         if(this._time) return;
