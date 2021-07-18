@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap, input, dMap, unitSize};
+export {cv, dqMap, update, zMap, input, dMap, unitSize, player};
 const unitSize = 48,
       input = {y: 6, z: 0, v: {erase: true}},
       zMap = new Map;
@@ -241,7 +241,7 @@ const player = new class {
         this.lastTime = 0;
         this._time = null;
         this.way = 's';
-        this.obj = new Anime({id: 'fFrt63r', frame: 2, way: 'wdsa'});
+        this.costume = this.default = new Anime({id: 'fFrt63r', frame: 2, way: 'wdsa'});
     }
     set(way){
         this.way = way;
@@ -269,9 +269,15 @@ const player = new class {
         this.nowX = x - (x - _x) * rate;
         this.nowY = y - (y - _y) * rate;
     }
+    dressUp(key, index){
+        if(dMap.has(key)) return;
+        this.costume = dMap.get(key);
+        this.index = index;
+    }
     draw(ctx){
-        const {obj, nowX, nowY, way} = this;
-        obj.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {way}, input.y);
+        const {nowX, nowY, way, index} = this;
+        if(!this.costume) this.costume = this.default;
+        this.costume.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {way, index}, input.y);
     }
     goto(x, y){
         const {width, height} = dqMap.info;
@@ -289,7 +295,7 @@ const player = new class {
         if(g_nowTime - this.lastTime < 300) return;
         this.lastTime = g_nowTime;
         this.timeIdx = (this.timeIdx + 1) % this.times.length;
-        this.obj.anime = this.times[this.timeIdx] * 5;
+        this.default.anime = this.times[this.timeIdx] * 6;
     }
     put(v = null){
         const {z} = input;
