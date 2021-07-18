@@ -174,11 +174,13 @@ const frame = new class {
         const {width, height, depth} = dqMap.info,
               [pivotW, pivotH] = this._pivotWH,
               maxX = width - pivotW,
-              maxY = height - pivotH;
-        const [_x, _xx] = this._switchF(player.nowX, pivotW, maxX, player.x),
+              maxY = height - pivotH,
+              [_x, _xx] = this._switchF(player.nowX, pivotW, maxX, player.x),
               [_y, _yy] = this._switchF(player.nowY, pivotH, maxY, player.y);
         this.x = _x;
         this.y = _y;
+        this._x = _xx;
+        this._y = _yy;
         const {x, y, w, h} = this,
               w2 = w + 2,
               h2 = h + 2,
@@ -199,11 +201,9 @@ const frame = new class {
         const {key, index, way} = elm;
         dMap.get(key)?.draw(ctx, _x, _y, {index, way}, input.y);
     }
-    _pivot(n){
-        return (n / 2 | 0) + 1;
-    }
     get _pivotWH(){
-        return [this._pivot(this.w), this._pivot(this.h)];
+        const {w, h} = this;
+        return [w, h].map(v => v >> 1);
     }
     _get3state(value, pivot, max){
         return max < pivot || value <= pivot ? -1 : value > pivot && value < max ? 0 : 1;
@@ -366,3 +366,4 @@ setText.main(() => `座標(${player.x},${player.y})`);
 setText.main(() => `[F]${player.times[0] / player.times[player.timeIdx]}倍速`);
 setText.main(() => `[Z]設置 [X]削除`);
 setText.main(() => `[SPACE]メニューを開く`);
+setText.main(() => `${frame._xx} ${frame._yy}`);
