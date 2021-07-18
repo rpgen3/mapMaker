@@ -363,6 +363,6 @@ const setText = new class {
     }
 };
 setText.main(() => `座標(${player.x},${player.y})`);
-setText.main(() => `[F]${player.times[0]/player.times[player.timeIdx]}倍速`);
+setText.main(() => `[F]${player.times[0]/player.times[(player.timeIdx + 1) % player.times.length]}倍速`);
 setText.main(() => `[Z]設置 [X]削除`);
 setText.main(() => `[SPACE]メニューを開く`);
