@@ -270,7 +270,10 @@ const player = new class {
         this.nowY = y - (y - _y) * rate;
     }
     dressUp(key, index){
-        if(dMap.has(key)) return;
+        if(dMap.has(key)) {
+              this.costume = this.default;
+              return;
+        }
         this.costume = dMap.get(key);
         this.index = index;
     }
