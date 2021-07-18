@@ -118,8 +118,8 @@ class AnimeSplit extends Anime {
         if(!this.isReady || !this.index.includes(index)) return s404.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h} = this,
-              _xx = unitSize * _x + _w * this.calcFrame(),
-              _yy = unitSize * _y + _h * this.way.indexOf(way);
+              _xx = _w * (_x + this.calcFrame()),
+              _yy = _h * (_y + this.way.indexOf(way));
         ctx.drawImage(
             img,
             _xx, _yy, _w, _h,
