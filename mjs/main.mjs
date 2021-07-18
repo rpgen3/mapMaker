@@ -116,7 +116,7 @@ class AnimeSplit extends Anime {
             if(!this.isReady) return;
             this.adjust(width, height);
             this.index = index;
-            this.indexToXY = SpriteSplit.split(this.img, width, height);
+            this.indexToXY = SpriteSplit.split(this.img, width * frame, height * index.length);
         });
     }
     draw(ctx, x, y, {way, index}, diff = 0){
