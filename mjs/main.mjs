@@ -8,20 +8,14 @@ const rpgen3 = await importAll([
     'imgur',
     'strToImg'
 ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
-const sysImg = await Promise.all([
-    'oypcplE', // now loading
-    'aY2ef1p' // 404
-].map(id => rpgen3.imgur.load(id)));
+const s404 = Sprite({id: 'aY2ef1p'});
+await s404.promise;
 class Sprite {
     constructor({id}){
-        this.img = sysImg[0];
-        this.adjust(16, 16);
         this.promise = rpgen3.imgur.load(id).then(img => {
             this.img = img;
             this.adjust(img.width, img.height);
             this.isReady = true;
-        }).catch(() => {
-            this.img = sysImg[1];
         });
     }
     adjust(width, height){ // 位置調整
@@ -41,6 +35,7 @@ class Sprite {
         [this.w, this.h, this.x, this.y] = [w, h, x, y].map(Math.floor);
     }
     draw(ctx, x, y){
+        if(!this.isReady) return s404.draw(ctx, x, y);
         const {img, w, h} = this;
         ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
     }
@@ -63,7 +58,7 @@ class SpriteSplit extends Sprite {
         return a;
     }
     draw(ctx, x, y, {index}){
-        if(!this.isReady) return super.draw(ctx, x, y);
+        if(!this.isReady || !this.index.includes(index)) return s404.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index].map(v => v * unitSize) || [0, 0],
               {img, _w, _h, w, h} = this;
         ctx.drawImage(
@@ -100,7 +95,7 @@ class Anime extends Sprite {
         return now / anime * frame | 0;
     }
     draw(ctx, x, y, {way}, diff = 0){
-        if(!this.isReady) return super.draw(ctx, x, y);
+        if(!this.isReady) return s404.draw(ctx, x, y);
         const {img, _w, _h, w, h} = this,
               _x = _w * this.calcFrame(),
               _y = _h * this.way.indexOf(way);
@@ -116,11 +111,11 @@ class AnimeSplit extends Anime {
             if(!this.isReady) return;
             this.adjust(width, height);
             this.index = index;
-            this.indexToXY = SpriteSplit.split(this.img, width * frame, height * index.length);
+            this.indexToXY = SpriteSplit.split(this.img, width * frame, height * way.length);
         });
     }
     draw(ctx, x, y, {way, index}, diff = 0){
-        if(!this.isReady) return super.draw(ctx, x, y);
+        if(!this.isReady || !this.index.includes(index)) return s404.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h} = this,
               _xx = unitSize * _x + _w * this.calcFrame(),
