@@ -36,7 +36,6 @@
             $(this.cv).hide();
         }
         main(){
-            Win.delete();
             input.z = 0;
             input.v = null;
             zMap.clear();
@@ -57,20 +56,19 @@
     $('<button>').appendTo(holder).text('読み込み').on('click', () => openWindowImport());
     const Win = new class {
         constructor(){
-            this.arr = [];
+            this.m = new Map;
             this.unit = 30;
             this.cnt = 0;
         }
-        make(title, w = this.w, h = this.h){
-            const {arr} = this;
-            if(arr.some(win => win.title === title && win.exist && win.focus())) return false;
-            const win = new rpgen5.Jsframe(title).set(w, h);
-            arr.push(win.goto(...this._xy(win)));
+        make(ttl){
+            const {m} = this;
+            if(m.has(ttl)){
+                const win = m.get(ttl);
+                if(win.exist) return win.focus();
+            }
+            const win = new rpgen5.Jsframe(title);
+            m.set(ttl, win.goto(...this._xy(win)));
             return win;
-        }
-        delete(){
-            const {arr} = this;
-            while(arr.length) arr.pop().delete();
         }
         _xy(win){
             const {w, h} = win;
@@ -82,7 +80,8 @@
             return [...new Array(2)].map(v => rpgen3.randInt(-5, 5) + now);
         }
     };
-    const toInt = str => Number(String(str).match(/[0-9]+/)?.[0]) || 0;
+    const toInt = str => Number(String(str).match(/[0-9]+/)?.[0]) || 0,
+          promiseBtn = (elm, ttl) => new Promise(resolve => $('<button>').appendTo(elm).text(ttl).on('click', resolve));
     const openWindowInit = async () => {
         const win = Win.make('パラメータを設定して初期化');
         if(!win) return;
@@ -102,11 +101,12 @@
             value: 3,
             save: true
         });
-        await new Promise(resolve => $('<button>').appendTo(elm).text('マップを新規作成').on('click', resolve));
+        await promiseBtn(elm, 'マップを新規作成');
         dqMap.set(...[w, h, d].map(toInt)).init();
         init.main();
+        win.delete();
     };
-    const openWindowImport = () => {
+    const openWindowImport = async () => {
         const win = Win.make('作業ファイルを読み込む');
         if(!win) return;
         const {elm} = win;
@@ -115,12 +115,15 @@
             accept: '.txt'
         }).on('change', async ({target}) => {
             loadFile(await target.files[0].text());
+            win.delete();
         });
         const inputText = rpgen3.addInputStr(elm,{
             label: '入力欄から',
             textarea: true
         });
-        $('<button>').appendTo(elm).text('読み込む').on('click', () => loadFile(inputText()));
+        await promiseBtn(elm, '読み込む');
+        loadFile(inputText());
+        win.delete();
     };
     const loadFile = str => {
         dqMap.input(str);
@@ -133,7 +136,7 @@
         const win = Win.make('現在の編集内容を書き出す');
         if(!win) return;
         const {elm} = win;
-        await new Promise(resolve => $('<button>').appendTo(elm).text('書き出し開始').on('click', resolve));
+        await promiseBtn(elm, '書き出し開始');
         const isNoSpace = rpgen3.addInputBool(elm,{
             label: '半角スペースを削除する',
             save: true
@@ -177,8 +180,8 @@
         })(elm);
         const addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on(
             'click', () => openWindowInputImgur(tbody, isAnime, isSplit)
-            //.then(() => msg('読み込みが正常に完了しました'))
-            //.catch(err => msg(err, true))
+            .then(() => msg('読み込みが正常に完了しました'))
+            .catch(err => msg(err, true))
         );
         addBtn('単体のマップチップ');
         addBtn('単体の歩行グラ', true);
@@ -244,37 +247,35 @@
             textarea: true
         });
         inputImgur.elm.focus();
-        await new Promise(resolve => $('<button>').appendTo(elm).text('決定').on('click', resolve));
+        await promiseBtn(elm, '決定');
         const urls = rpgen3.findURL(inputImgur()),
               arr = urls.length ? urls.filter(v => rpgen3.getDomain(v)[1] === 'imgur')
         .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : inputImgur().match(/[0-9A-Za-z]+/g);
         if(!arr) return;
-        const {next} = dqMap;
+        const {next} = dqMap,
+              err = str => {
+                  win.delete();
+                  throw str;
+              };
         let i = 0;
         for(const id of arr){
             const obj = {id};
-            try {
-                if(isAnime){
-                    const f = toInt(inputframe),
-                          w = inputWay();
-                    if(!f) throw 'フレーム数の値が不正です';
-                    if(!/[wasd]/.test(w)) '方向の定義の値が不正です';
-                    obj.frame = f;
-                    obj.way = w;
-                }
-                if(isSplit){
-                    const w = toInt(inputWidth),
-                          h = toInt(inputHeight);
-                    if(!w || !h) '幅・高さの値が0です';
-                    if(w > 64 || h > 64) '幅・高さの最大値は64pxです';
-                    obj.width = w;
-                    obj.height = h;
-                    obj.index = [];
-                }
+            if(isAnime){
+                const f = toInt(inputframe),
+                      w = inputWay();
+                if(!f) err('フレーム数の値が不正です');
+                if(!/[wasd]/.test(w)) err('方向の定義の値が不正です');
+                obj.frame = f;
+                obj.way = w;
             }
-            catch(err) {
-                win.delete();
-                throw err;
+            if(isSplit){
+                const w = toInt(inputWidth),
+                      h = toInt(inputHeight);
+                if(!w || !h) err('幅・高さの値が0です');
+                if(w > 64 || h > 64) err('幅・高さの最大値は64pxです');
+                obj.width = w;
+                obj.height = h;
+                obj.index = [];
             }
             const k = next + i,
                   {promise} = dMap.set(k, obj);
