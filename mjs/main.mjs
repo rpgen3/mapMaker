@@ -165,8 +165,8 @@ const frame = new class {
         this.x = this.y = this._x = this._y = 0;
     }
     set(w, h){
-        this.w = w;
-        this.h = h;
+        this.w = w | 0;
+        this.h = h | 0;
         return this;
     }
     update(ctx){
@@ -180,8 +180,10 @@ const frame = new class {
         this.x = _x;
         this.y = _y;
         const {x, y, w, h} = this,
+              w2 = w + 2,
+              h2 = h + 2,
               zArr = zMap.get('order').filter(v => zMap.get(v));
-        for(const z of zArr) for(let j = -1; j <= h; j++) for(let k = -1; k <= w; k++) this.draw({
+        for(const z of zArr) for(let j = -1; j < h2; j++) for(let k = -1; k < w2; k++) this.draw({
             ctx,
             x: k + x,
             y: j + y,
@@ -308,7 +310,7 @@ const rpgen5 = await importAll([
 ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
 const dqMap = new rpgen5.DQMap();
 layer.set(player);
-layer.set(frame.set(cv.w / unitSize | 0, cv.h / unitSize | 0));
+layer.set(frame.set(cv.w / unitSize, cv.h / unitSize));
 layer.set({update: ctx => player.draw(ctx)});
 let g_nowTime;
 const update = () => {
