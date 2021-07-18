@@ -406,8 +406,10 @@
             save: true
         });
         selectTipType.elm.on('change', () => {
+            const tipType = selectTipType();
             holder.children().hide();
-            holder.find('.' + paletteClass(selectTipType())).show();
+            holder.find('.' + paletteClass(tipType)).show();
+            inputWay.elm[tipType % 2 ? 'show' : 'hide']();
         });
         const inputWay = rpgen3.addSelect(elm, {
             label: '人物の向き',
@@ -423,7 +425,8 @@
         inputWay.elm.on('change', () => {
             if(!input.v) input.v = {};
             input.v.way = inputWay();
-        }).trigger('change');
+        });
+        selectTipType.elm.trigger('change');
         const holder = $('<div>').appendTo(elm).prop('id', paletteHolderId);
         for(const [k,v] of dqMap.define) addPalette(k);
     };
