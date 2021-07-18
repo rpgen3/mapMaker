@@ -393,7 +393,7 @@
         return tr;
     };
     const paletteClass = tipType => `palletClass${tipType}`,
-          paletteKeyClass = key => `palletClass${key}`,
+          paletteKeyClass = key => `palletKeyClass${key}`,
           paletteHolderId = 'palletHolderId',
           paletteTitle = 'パレット選択';
     let selectTipType;
