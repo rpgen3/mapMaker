@@ -324,6 +324,7 @@
     const deleteKey = key => {
         dqMap.define.delete(key);
         dMap.delete(key);
+        $('.' + paletteKeyClass(key)).remove();
     };
     const makeTr = (key, id, cv, remove) => {
         const tr = $('<tr>');
@@ -391,21 +392,23 @@
         });
         return tr;
     };
-    const paletteClass = i => `palletClass${i}`,
+    const paletteClass = tipType => `palletClass${tipType}`,
+          paletteKeyClass = key => `palletClass${key}`,
           paletteHolderId = 'palletHolderId',
           paletteTitle = 'パレット選択';
+    let selectTipType;
     const openWindowPalette = () => {
         const win = Win.make(paletteTitle);
         if(!win) return;
         const {elm} = win;
-        const selectTipType = rpgen3.addSelect(elm, {
+        selectTipType = rpgen3.addSelect(elm, {
             label: '表示するもの',
-            list: mapTipType,
+            list: mapTipType.map((v, i) => [v, i]),
             save: true
         });
         selectTipType.elm.on('change', () => {
             holder.children().hide();
-            holder.find('.' + paletteClass(mapTipType.indexOf(selectTipType()))).show();
+            holder.find('.' + paletteClass(selectTipType())).show();
         });
         const inputWay = rpgen3.addSelect(elm, {
             label: '人物の向き',
@@ -426,9 +429,9 @@
         for(const [k,v] of dqMap.define) addPalette(k);
     };
     const addPalette = key => {
-        const win = Win.get(paletteTitle);
+        const win = Win.m.get(paletteTitle);
         if(!win) return;
-        const elm = win.elm.find('#' + paletteHolderId),
+        const elm = $('#' + paletteHolderId),
               obj = dqMap.define.get(key),
               isAnime = 'way' in obj,
               isSplit = 'index' in obj;
@@ -437,7 +440,8 @@
     };
     const activeClassP = 'activePalette';
     const makePalette = (isAnime, key, index = null) => {
-        const isSplit = index !== null;
+        const isSplit = index !== null,
+              tipType = isSplit && isAnime ? 3 : isSplit ? 2 : isAnime ? 1 : 0;
         const cv = makeCanvas(key, index).on('click', () => {
             const flag = cv.hasClass(activeClassP);
             input.v.erase = flag;
@@ -447,8 +451,10 @@
                 input.v.key = key;
                 if(isSplit) input.v.index = index;
             }
-        }).addClass(paletteClass(isSplit && isAnime ? 3 : isSplit ? 2 : isAnime ? 1 : 0));
+        }).addClass(paletteClass(tipType)).addClass(paletteKeyClass(key));
         if(!input.v.erase && input.v.key === key && (!isSplit || input.v.index === index)) cv.addClass(activeClassP);
+        if(tipType === selectTipType()) cv.show();
+        else cv.hide();
         return cv;
     };
     const openWindowConfig = () => {
