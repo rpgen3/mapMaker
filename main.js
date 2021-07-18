@@ -409,9 +409,10 @@
             const tipType = selectTipType();
             holder.children().hide();
             holder.find('.' + paletteClass(tipType)).show();
-            inputWay.elm[tipType % 2 ? 'show' : 'hide']();
+            hWay[tipType % 2 ? 'show' : 'hide']();
         });
-        const inputWay = rpgen3.addSelect(elm, {
+        const hWay = $('<div>').appendTo(elm);
+        const inputWay = rpgen3.addSelect(hWay, {
             label: '人物の向き',
             list: {
                 '↑': 'w',
@@ -426,8 +427,8 @@
             if(!input.v) input.v = {};
             input.v.way = inputWay();
         });
-        selectTipType.elm.trigger('change');
         const holder = $('<div>').appendTo(elm).prop('id', paletteHolderId);
+        selectTipType.elm.trigger('change');
         for(const [k,v] of dqMap.define) addPalette(k);
     };
     const addPalette = key => {
