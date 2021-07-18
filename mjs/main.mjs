@@ -38,7 +38,7 @@ class Sprite {
         ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
     }
 }
-const s404 = Sprite({id: 'aY2ef1p'});
+const s404 = new Sprite({id: 'aY2ef1p'});
 await s404.promise;
 class SpriteSplit extends Sprite {
     constructor({id, width, height, index}){
