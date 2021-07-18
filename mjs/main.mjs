@@ -271,7 +271,7 @@ const player = new class {
     }
     dressUp(key = null, index){
         if(key === null) return (this.costume = this.default);
-        if(dMap.has(key)) return;
+        if(!dMap.has(key)) return;
         this.costume = dMap.get(key);
         this.index = index;
     }
