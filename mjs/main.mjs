@@ -90,7 +90,7 @@ class Anime extends Sprite {
         let now =  g_nowTime % anime;
         if(this.goAndBack){
             const half = anime / 2;
-            now = (half - Math.abs(now * (frame - 1) / frame - half)) * 2;
+            now = (half - Math.abs(now - half)) * 2;
         }
         return now / anime * frame | 0;
     }
