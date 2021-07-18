@@ -2,10 +2,9 @@
     const {importAll, getScript, getCSS, promiseSerial} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
     promiseSerial([
         'table',
-        'ul',
         'plusBtn',
-        'active',
-        'off'
+        'layer',
+        'palette'
     ].map(v => getCSS(`https://rpgen3.github.io/mapMaker/css/${v}.css`)));
     await getScript('https://code.jquery.com/jquery-3.3.1.min.js');
     const $ = window.$;
