@@ -8,8 +8,6 @@ const rpgen3 = await importAll([
     'imgur',
     'strToImg'
 ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
-const s404 = Sprite({id: 'aY2ef1p'});
-await s404.promise;
 class Sprite {
     constructor({id}){
         this.promise = rpgen3.imgur.load(id).then(img => {
@@ -40,6 +38,8 @@ class Sprite {
         ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
     }
 }
+const s404 = Sprite({id: 'aY2ef1p'});
+await s404.promise;
 class SpriteSplit extends Sprite {
     constructor({id, width, height, index}){
         super({id}).promise.then(() => {
