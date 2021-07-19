@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap, input, dMap, unitSize, player};
+export {cv, dqMap, update, zMap, input, dMap, unitSize, player, scale};
 const unitSize = 48,
       input = {y: 6, z: 0, v: {erase: true}},
       zMap = new Map;
@@ -174,15 +174,10 @@ const frame = new class {
         const {width, height, depth} = dqMap.info,
               [pivotW, pivotH] = this._pivotWH,
               maxX = width - pivotW,
-              maxY = height - pivotH,
-              [_x, _xx] = this._switchF(player.nowX, pivotW, maxX, player.x),
-              [_y, _yy] = this._switchF(player.nowY, pivotH, maxY, player.y);
-        this.x = _x;
-        this.y = _y;
-        this._x = _xx;
-        this._y = _yy;
-        g_debug = [this._x, this._y].join(' ');
-        const {x, y, w, h} = this,
+              maxY = height - pivotH;
+        [this.x, this._x] = this._switchF(player.nowX, pivotW, maxX, player.x);
+        [this.y, this._y] = this._switchF(player.nowY, pivotH, maxY, player.y);
+        const {x, y, _x, _y, w, h} = this,
               w2 = w + 2,
               h2 = h + 2,
               zArr = zMap.get('order').filter(v => zMap.get(v));
@@ -191,8 +186,8 @@ const frame = new class {
             x: k + x,
             y: j + y,
             z,
-            _x: k + _xx,
-            _y: j + _yy
+            _x: k + _x,
+            _y: j + _y
         });
     }
     draw({ctx, x, y, z, _x, _y}){
@@ -328,6 +323,25 @@ const update = () => {
     layer.forEach(v => v.update(ctx));
     requestAnimationFrame(update);
 };
+const scale = {
+    update(ctx){
+        if(this.hide) return;
+        const {w, h, _x, _y} = frame,
+              max = Math.max(w, h),
+              _w = w * unitSize,
+              _h = h * unitSize;
+        ctx.beginPath();
+        for(let i = 0; i < max; i++){
+            const _i = i * unitSize,
+                  a = _i + _x,
+                  b = _i + _y;
+            if(i < w) ctx.moveTo(a, 0), ctx.lineTo(a, _h);
+            if(i < h) ctx.moveTo(0, b), ctx.lineTo(_w, b);
+        }
+        ctx.stroke();
+    }
+};
+layer.set(scale);
 class SimpleText {
     constructor({text = '', color = 'black', size = 16}){
         this.x = this.y = 0;
