@@ -27,7 +27,7 @@
         'Jsframe'
     ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
     const {
-        cv, dqMap, update, zMap, input, dMap, unitSize, player,
+        cv, dqMap, update, zMap, input, dMap, unitSize, player, scale,
         Jsframe
     } = rpgen5;
     const init = new class {
@@ -492,6 +492,12 @@
             });
         });
         $('<button>').appendTo(elm).text('デフォルト衣装').on('click', () => player.dressUp());
+        const hideLine = rpgen3.addInputBool(elm,{
+            label: '目盛りを消す'
+        });
+        hideLine.elm.on('change',() => {
+            scale.hide = hideLine();
+        });
     };
     const openWindowAll = () =>{
         const win = Win.make('コマンド一覧');
