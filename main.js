@@ -1,11 +1,5 @@
 (async()=>{
-    const {importAll, getScript, getCSS, promiseSerial} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
-    promiseSerial([
-        'table',
-        'plusBtn',
-        'layer',
-        'palette'
-    ].map(v => getCSS(`https://rpgen3.github.io/mapMaker/css/${v}.css`)));
+    const {importAll, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
     await getScript('https://code.jquery.com/jquery-3.3.1.min.js');
     const $ = window.$;
     getScript('https://code.jquery.com/ui/1.12.1/jquery-ui.min.js');
@@ -16,12 +10,19 @@
     });
     const holder = $('<div>').appendTo(html);
     const rpgen3 = await importAll([
+        'css',
         'input',
         'imgur',
         'url',
         'util',
         'random'
     ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
+    [
+        'table',
+        'plusBtn',
+        'layer',
+        'palette'
+    ].map(v => `https://rpgen3.github.io/mapMaker/css/${v}.css`).map(rpgen3.addCSS);
     const rpgen5 = await importAll([
         'main',
         'Jsframe'
