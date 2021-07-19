@@ -202,7 +202,7 @@ const frame = new class {
         return [w, h].map(v => v >> 1);
     }
     _get3state(value, pivot, max){
-        return max < pivot || value <= pivot ? -1 : value > pivot && value < max ? 0 : 1;
+        return max < pivot || value <= pivot ? -1 : value <= max ? 0 : 1;
     }
     _switchP(value, pivot, max){
         switch(this._get3state(value, pivot, max)){
@@ -333,12 +333,12 @@ const scale = {
               x = _x * unitSize,
               y = _y * unitSize;
         ctx.beginPath();
-        for(let i = 0; i < max; i++){
+        for(let i = -1; i <= max; i++){
             const _i = i * unitSize,
                   a = _i + x,
                   b = _i + y;
-            if(i < w) ctx.moveTo(a, 0), ctx.lineTo(a, _h);
-            if(i < h) ctx.moveTo(0, b), ctx.lineTo(_w, b);
+            if(i < w + 1) ctx.moveTo(a, 0), ctx.lineTo(a, _h);
+            if(i < h + 1) ctx.moveTo(0, b), ctx.lineTo(_w, b);
         }
         ctx.stroke();
     }
