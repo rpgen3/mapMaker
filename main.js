@@ -160,7 +160,7 @@
             type: 'text/plain'
         }))
     }).get(0).click();
-    const openWindowDefine = () => {
+    const openWindowDefine = async () => {
         const win = Win.make('定義リスト');
         if(!win) return;
         const {elm} = win,
@@ -172,8 +172,8 @@
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table),
               {define} = dqMap;
-        for(const k of define.keys()) addTr(tbody, k);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => openWindowSelect(tbody));
+        for(const k of define.keys()) await addTr(tbody, k);
     };
     const openWindowSelect = async tbody => {
         const win = Win.make('追加する素材のタイプを選択');
@@ -290,43 +290,42 @@
                 obj.height = h;
                 obj.index = [];
             }
-            const k = next + i,
-                  {promise} = dMap.set(k, obj);
+            const k = next + i;
+            await dMap.set(k, obj).promise;
             if(isSplit){
-                promise.then(() => {
-                    const d = dMap.get(k),
-                          index = [...d.indexToXY.keys()];
-                    d.index = obj.index = index;
-                });
+                const d = dMap.get(k),
+                      index = [...d.indexToXY.keys()];
+                d.index = obj.index = index;
             }
-            promise.then(() => {
-                dqMap.define.set(k, obj);
-                addTr(tbody, k);
-                addPalette(k);
-            });
+            dqMap.define.set(k, obj);
+            await Promise.all([
+                addTr(tbody, k),
+                addPalette(k)
+            ]);
             i++;
         }
         win.delete();
     };
-    const addTr = (tbody, key) => {
+    const addTr = async (tbody, key) => {
         const obj = dqMap.define.get(key),
               {id, index} = obj;
         if('index' in obj) {
-            for(const i of index) makeTr(`${key}-${i}`, id, makeCanvas(key, i), () => {
+            for(const i of index) await makeTr(`${key}-${i}`, id, makeCanvas(key, i), () => {
                 const {index} = dqMap.define.get(key),
                       idx = index.indexOf(i);
                 if(idx !== -1) index.splice(idx, 1);
                 if(!index.length) deleteKey(key);
             }).appendTo(tbody);
         }
-        else makeTr(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
+        else await makeTr(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
     };
     const deleteKey = key => {
         dqMap.define.delete(key);
         dMap.delete(key);
         $('.' + paletteKeyClass(key)).remove();
     };
-    const makeTr = (key, id, cv, remove) => {
+    const makeTr = async (key, id, cv, remove) => {
+        await sleep(10);
         const tr = $('<tr>');
         $('<th>').appendTo(tr).text(key);
         $('<td>').appendTo(tr).text(id);
@@ -337,6 +336,7 @@
         });
         return tr;
     };
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     const makeCanvas = (key, index) => {
         const cv = $('<canvas>').prop({width: unitSize, height: unitSize}),
               ctx = cv.get(0).getContext('2d');
@@ -397,7 +397,7 @@
           paletteHolderId = 'palletHolderId',
           paletteTitle = 'パレット選択';
     let selectTipType;
-    const openWindowPalette = () => {
+    const openWindowPalette = async () => {
         const win = Win.make(paletteTitle);
         if(!win) return;
         const {elm} = win;
@@ -430,20 +430,21 @@
         }).trigger('change');
         const holder = $('<div>').appendTo(elm).prop('id', paletteHolderId);
         selectTipType.elm.trigger('change');
-        for(const [k,v] of dqMap.define) addPalette(k);
+        for(const [k,v] of dqMap.define) await addPalette(k);
     };
-    const addPalette = key => {
+    const addPalette = async key => {
         const win = Win.m.get(paletteTitle);
         if(!win) return;
         const elm = $('#' + paletteHolderId),
               obj = dqMap.define.get(key),
               isAnime = 'way' in obj,
               isSplit = 'index' in obj;
-        if(isSplit) for(const index of obj.index) makePalette(isAnime, key, index).appendTo(elm);
-        else makePalette(isAnime, key).appendTo(elm);
+        if(isSplit) for(const index of obj.index) await makePalette(isAnime, key, index).appendTo(elm);
+        else await makePalette(isAnime, key).appendTo(elm);
     };
     const activeClassP = 'activePalette';
-    const makePalette = (isAnime, key, index = null) => {
+    const makePalette = async (isAnime, key, index = null) => {
+        await sleep(10);
         const isSplit = index !== null,
               tipType = isSplit && isAnime ? 3 : isSplit ? 2 : isAnime ? 1 : 0;
         const cv = makeCanvas(key, index).on('click', () => {
