@@ -171,10 +171,10 @@ const frame = new class {
     }
     update(ctx){
         if(!dqMap.data) return;
-        const {width, height} = dqMap.info,
-              {w, h, _switchF} = this;
-        [this.x, this._x] = _switchF(player.nowX, w, width, player.x);
-        [this.y, this._y] = _switchF(player.nowY, h, height, player.y);
+        const {w, h} = this,
+              {width, height} = dqMap.info;
+        [this.x, this._x] = this._switchF(player.nowX, w, width, player.x);
+        [this.y, this._y] = this._switchF(player.nowY, h, height, player.y);
         const {x, y, _x, _y} = this,
               w2 = w + 2,
               h2 = h + 2,
@@ -199,34 +199,34 @@ const frame = new class {
         const pivot = w >> 1;
         return [pivot, width - pivot];
     }
-    _get3state(value, pivot, max){
-        return max < pivot || value <= pivot ? -1 : value < max ? 0 : 1;
+    _get3state(x, pivot, max){
+        return max < pivot || x <= pivot ? -1 : x < max ? 0 : 1;
     }
-    _switchP(value, w, width){
+    _switchP(x, w, width){
         const [pivot, max] = this._f(w, width);
-        switch(this._get3state(value, pivot, max)){
-            case -1: return value;
+        switch(this._get3state(x, pivot, max)){
+            case -1: return x;
             case 0: return pivot;
-            case 1: return value - (max - pivot);
+            case 1: return x - (max - pivot);
         }
     }
-    _switchF(value, w, width, next){
+    _switchF(x, w, width, next){
         const [pivot, max] = this._f(w, width);
-        switch(this._get3state(value, pivot, max)){
+        switch(this._get3state(x, pivot, max)){
             case -1: return [0, 0];
             case 0: {
-                const v = next - value;
-                return [value - pivot | 0, v === -1 ? 0 : v > 0 ? v - 1 : v];
+                const v = next - x;
+                return [x - pivot | 0, v === -1 ? 0 : v > 0 ? v - 1 : v];
             }
             case 1: return [max - pivot, 0];
         }
     }
     calcPlayerXY(x, y){
-        const {width, height} = dqMap.info,
-              {w, h, _switchP} = this;
+        const {w, h} = this,
+              {width, height} = dqMap.info;
         return [
-            _switchP(x, w, width),
-            _switchP(y, h, height)
+            this._switchP(x, w, width),
+            this._switchP(y, h, height)
         ];
     }
 };
