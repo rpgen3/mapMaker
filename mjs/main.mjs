@@ -171,13 +171,11 @@ const frame = new class {
     }
     update(ctx){
         if(!dqMap.data) return;
-        const {width, height, depth} = dqMap.info,
-              [pivotW, pivotH] = this._pivotWH,
-              maxX = width - pivotW,
-              maxY = height - pivotH;
-        [this.x, this._x] = this._switchF(player.nowX, pivotW, maxX, player.x);
-        [this.y, this._y] = this._switchF(player.nowY, pivotH, maxY, player.y);
-        const {x, y, _x, _y, w, h} = this,
+        const {width, height} = dqMap.info,
+              {w, h, _switchF} = this;
+        [this.x, this._x] = _switchF(player.nowX, w, width, player.x);
+        [this.y, this._y] = _switchF(player.nowY, h, height, player.y);
+        const {x, y, _x, _y} = this,
               w2 = w + 2,
               h2 = h + 2,
               zArr = zMap.get('order').filter(v => zMap.get(v));
@@ -197,21 +195,23 @@ const frame = new class {
         const {key, index, way} = elm;
         dMap.get(key)?.draw(ctx, _x, _y, {index, way}, input.y);
     }
-    get _pivotWH(){
-        const {w, h} = this;
-        return [w, h].map(v => v >> 1);
+    _f(w, width){
+        const pivot = w >> 1;
+        return [pivot, width - pivot];
     }
     _get3state(value, pivot, max){
-        return max < pivot || value <= pivot ? -1 : value <= max ? 0 : 1;
+        return max < pivot || value <= pivot ? -1 : value < max ? 0 : 1;
     }
-    _switchP(value, pivot, max){
+    _switchP(value, w, width){
+        const [pivot, max] = this._f(w, width);
         switch(this._get3state(value, pivot, max)){
             case -1: return value;
             case 0: return pivot;
             case 1: return value - (max - pivot);
         }
     }
-    _switchF(value, pivot, max, next){
+    _switchF(value, w, width, next){
+        const [pivot, max] = this._f(w, width);
         switch(this._get3state(value, pivot, max)){
             case -1: return [0, 0];
             case 0: {
@@ -223,10 +223,11 @@ const frame = new class {
     }
     calcPlayerXY(x, y){
         const {width, height} = dqMap.info,
-              [pivotW, pivotH] = this._pivotWH,
-              maxX = width - pivotW,
-              maxY = height - pivotH;
-        return [this._switchP(x, pivotW, maxX), this._switchP(y, pivotH, maxY)];
+              {w, h, _switchP} = this;
+        return [
+            _switchP(x, w, width),
+            _switchP(y, h, height)
+        ];
     }
 };
 const player = new class {
@@ -350,7 +351,7 @@ class SimpleText {
         this.text = text;
         this.color = color;
         this.size = size;
-        layer.set(this, 999);
+        layer.set(this);
     }
     update(ctx){
         const {x, y, text, color, size} = this;
