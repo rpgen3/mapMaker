@@ -310,22 +310,24 @@
         const obj = dqMap.define.get(key),
               {id, index} = obj;
         if('index' in obj) {
-            for(const i of index) await makeTr(`${key}-${i}`, id, makeCanvas(key, i), () => {
-                const {index} = dqMap.define.get(key),
-                      idx = index.indexOf(i);
-                if(idx !== -1) index.splice(idx, 1);
-                if(!index.length) deleteKey(key);
-            }).appendTo(tbody);
+            for(const i of index) {
+                makeTr(`${key}-${i}`, id, makeCanvas(key, i), () => {
+                    const {index} = dqMap.define.get(key),
+                          idx = index.indexOf(i);
+                    if(idx !== -1) index.splice(idx, 1);
+                    if(!index.length) deleteKey(key);
+                }).appendTo(tbody);
+                await sleep(10);
+            }
         }
-        else await makeTr(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
+        else makeTr(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
     };
     const deleteKey = key => {
         dqMap.define.delete(key);
         dMap.delete(key);
         $('.' + paletteKeyClass(key)).remove();
     };
-    const makeTr = async (key, id, cv, remove) => {
-        await sleep(10);
+    const makeTr = (key, id, cv, remove) => {
         const tr = $('<tr>');
         $('<th>').appendTo(tr).text(key);
         $('<td>').appendTo(tr).text(id);
@@ -439,12 +441,16 @@
               obj = dqMap.define.get(key),
               isAnime = 'way' in obj,
               isSplit = 'index' in obj;
-        if(isSplit) for(const index of obj.index) await makePalette(isAnime, key, index).appendTo(elm);
-        else await makePalette(isAnime, key).appendTo(elm);
+        if(isSplit) {
+            for(const index of obj.index) {
+                makePalette(isAnime, key, index).appendTo(elm);
+                await sleep(10);
+            }
+        }
+        else makePalette(isAnime, key).appendTo(elm);
     };
     const activeClassP = 'activePalette';
-    const makePalette = async (isAnime, key, index = null) => {
-        await sleep(10);
+    const makePalette = (isAnime, key, index = null) => {
         const isSplit = index !== null,
               tipType = isSplit && isAnime ? 3 : isSplit ? 2 : isAnime ? 1 : 0;
         const cv = makeCanvas(key, index).on('click', () => {
