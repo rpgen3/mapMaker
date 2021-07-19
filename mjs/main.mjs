@@ -197,7 +197,7 @@ const frame = new class {
     }
     _f(w, width){
         const pivot = w >> 1;
-        return [pivot, width - pivot - 1];
+        return [pivot, width - pivot];
     }
     _get3state(x, pivot, max){
         return max < pivot || x <= pivot ? -1 : x < max ? 0 : 1;
