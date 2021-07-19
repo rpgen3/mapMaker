@@ -329,12 +329,14 @@ const scale = {
         const {w, h, _x, _y} = frame,
               max = Math.max(w, h),
               _w = w * unitSize,
-              _h = h * unitSize;
+              _h = h * unitSize,
+              x = _x * unitSize,
+              y = _y * unitSize;
         ctx.beginPath();
         for(let i = 0; i < max; i++){
             const _i = i * unitSize,
-                  a = _i + _x,
-                  b = _i + _y;
+                  a = _i + x,
+                  b = _i + y;
             if(i < w) ctx.moveTo(a, 0), ctx.lineTo(a, _h);
             if(i < h) ctx.moveTo(0, b), ctx.lineTo(_w, b);
         }
