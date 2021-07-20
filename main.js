@@ -11,6 +11,7 @@
     const holder = $('<div>').appendTo(html);
     const rpgen3 = await importAll([
         'css',
+        'hankaku',
         'input',
         'imgur',
         'url',
@@ -88,7 +89,7 @@
             for(const [k,v] of this.m) v.delete();
         }
     };
-    const toInt = str => Number(String(str).match(/[0-9]+/)?.[0]) || 0,
+    const toInt = str => Number(rpgen3.toHan(String(str)).match(/[0-9]+/)?.[0]) || 0,
           promiseBtn = (elm, ttl) => new Promise(resolve => $('<button>').appendTo(elm).text(ttl).on('click', resolve));
     const openWindowInit = async () => {
         const win = Win.make('パラメータを設定して初期化');
@@ -250,7 +251,7 @@
         });
         inputImgur.elm.focus();
         await promiseBtn(elm, '決定');
-        elm.text('入力値が正しいか判定中');
+        $(elm).text('入力値が正しいか判定中');
         const urls = rpgen3.findURL(inputImgur()),
               arr = urls.length ? urls.filter(v => rpgen3.getDomain(v)[1] === 'imgur')
         .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : inputImgur().match(/[0-9A-Za-z]+/g);
@@ -275,7 +276,7 @@
                 obj.height = h;
                 obj.index = [];
             }
-            elm.text('登録処理を実行中');
+            $(elm).text('登録処理を実行中');
             const k = next + i;
             await dMap.set(k, obj).promise;
             if(isSplit){
