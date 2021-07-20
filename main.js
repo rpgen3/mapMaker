@@ -482,7 +482,7 @@
             const input = rpgen3.addInputStr(elm, param);
             input.elm.on('change',()=>{
                 const m = input().match(/[0-9]+/g);
-                if(!m || m.length < 2) return;
+                if(!m) return;
                 player[func](...m.map(Number));
             });
         });
@@ -499,7 +499,7 @@
         if(!win) return;
         const {elm} = win;
         [
-            [openWindowDefine, '[D]定義リスト'],
+            [openWindowDefine, '[K]定義リスト'],
             [openWindowLayer, '[L]レイヤー操作'],
             [openWindowPalette, '[P]パレット選択'],
             [openWindowInit, '初期化'],
@@ -511,8 +511,8 @@
     $(window).on('keydown',({key})=>{
         if(!init.flag) return;
         switch(key){
-            case ' ': return openWindowAll();
-            case 'd': return openWindowDefine();
+            case 'm': return openWindowAll();
+            case 'k': return openWindowDefine();
             case 'l': return openWindowLayer();
             case 'p': return openWindowPalette();
         }
