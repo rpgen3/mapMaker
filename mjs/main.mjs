@@ -19,16 +19,23 @@ class Sprite {
     adjust(width, height){ // 位置調整
         [this._w, this._h] = [width, height];
         let w, h, x, y;
-        const f = (w, h) => [unitSize, unitSize * (h / w)];
-        if(width < height) {
-            [w, h] = f(width, height);
-            x = 0;
-            y = unitSize - h;
+        if(width > unitSize && height > unitSize){
+            [w, h] = [width, height];
+            y = unitSize - height;
+            x = (unitSize - w) / 2;
         }
         else {
-            [h, w] = f(height, width);
-            y = 0;
-            x = (unitSize - w) / 2;
+            const f = (w, h) => [unitSize, unitSize * (h / w)];
+            if(width < height) {
+                [w, h] = f(width, height);
+                x = 0;
+                y = unitSize - h;
+            }
+            else {
+                [h, w] = f(height, width);
+                y = 0;
+                x = (unitSize - w) / 2;
+            }
         }
         [this.w, this.h, this.x, this.y] = [w, h, x, y].map(Math.floor);
     }
