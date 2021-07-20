@@ -178,19 +178,8 @@
     const openWindowSelect = async tbody => {
         const win = Win.make('追加する素材のタイプを選択');
         if(!win) return;
-        const {elm} = win;
-        const msg = (parentNode => {
-            const holder = $('<div>').appendTo(parentNode);
-            return (str, isError) => $('<span>').appendTo(holder.empty()).text(`${str}(${rpgen3.getTime()})`).css({
-                color: isError ? 'red' : 'blue',
-                backgroundColor: isError ? 'pink' : 'lightblue'
-            });
-        })(elm);
-        const addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on(
-            'click', () => openWindowInputImgur(tbody, isAnime, isSplit)
-            .then(() => msg('読み込みが正常に完了しました'))
-            .catch(err => msg(err, true))
-        );
+        const {elm} = win,
+              addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on('click', () => openWindowInputImgur(tbody, isAnime, isSplit));
         addBtn(mapTipType[0]);
         addBtn(mapTipType[1], true);
         addBtn(mapTipType[2], false, true);
@@ -261,35 +250,32 @@
         });
         inputImgur.elm.focus();
         await promiseBtn(elm, '決定');
+        elm.text('入力値が正しいか判定中');
         const urls = rpgen3.findURL(inputImgur()),
               arr = urls.length ? urls.filter(v => rpgen3.getDomain(v)[1] === 'imgur')
         .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : inputImgur().match(/[0-9A-Za-z]+/g);
         if(!arr) return;
-        const {next} = dqMap,
-              err = str => {
-                  win.delete();
-                  throw str;
-              };
+        const {next} = dqMap;
         let i = 0;
         for(const id of arr){
             const obj = {id};
             if(isAnime){
                 const f = toInt(inputframe),
                       w = inputWay();
-                if(!f) err('フレーム数の値が不正です');
-                if(!/[wasd]/.test(w)) err('方向の定義の値が不正です');
+                if(!f) throw 'フレーム数の値が不正です';
+                if(!/[wasd]/.test(w)) throw '方向の定義の値が不正です';
                 obj.frame = f;
                 obj.way = w;
             }
             if(isSplit){
                 const w = toInt(inputWidth),
                       h = toInt(inputHeight);
-                if(!w || !h) err('幅・高さの値が0です');
-                if(w > 64 || h > 64) err('幅・高さの最大値は64pxです');
+                if(!w || !h) throw '幅・高さの値が0です';
                 obj.width = w;
                 obj.height = h;
                 obj.index = [];
             }
+            elm.text('登録処理を実行中');
             const k = next + i;
             await dMap.set(k, obj).promise;
             if(isSplit){
