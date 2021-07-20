@@ -1,11 +1,9 @@
 .activePalette {
-    padding: 0.5em 1em;
-    margin: 2em 0;
-    border: double 5px #4ec4d3;
+    outline: double 5px #4ec4d3;
+    outline-offset: -5px;
 }
 
 canvas[class^='palletClass']:hover {
-    padding: 0.5em 1em;
-    margin: 2em 0;
-    border: dashed 2px #ed6f89;
+    outline: dashed 2px #ed6f89;
+    outline-offset: -2px;
 }
