@@ -3,13 +3,13 @@ id = Imgur ID or Image URL
 0, id
 
 1, id, width, height [, x, y]
-2, parent, x, y
+2, parent[, x, y]
 
 3, id, frame, wasd, way
 4, parent, way
 
 5, id, width, height, frame, wasd, way [, x, y]
-6, parent, way, x, y
+6, parent, way[, x, y]
 7, parent, way
 
 8, #RGB[A]
