@@ -17,27 +17,10 @@ export class DQMap {
     }
     make(){
         const {height, width} = this.info;
-        return [...new Array(height)].map(() => [...new Array(width).fill(null)]);
+        return [...new Array(height)].map(() => [...new Array(width).fill(-1)]);
     }
-    put(x, y, z, v = null){
-        if(this.isOut(x, y, z)) return;
-        const {define, data} = this,
-              a = data[z][y],
-              putNull = () => isEqual(a[x], null) || (a[x] = null);
-        if(v === null) return putNull();
-        const {key, index, way} = v;
-        if(!define.has(key)) return putNull();
-        const obj = define.get(key),
-              elm = {key};
-        if('index' in obj) {
-            if(obj.index.includes(index)) elm.index = index;
-            else return putNull();
-        }
-        if('way' in obj){
-            if(obj.way.includes(way)) elm.way = way;
-            else return putNull();
-        }
-        if(!isEqual(a[x], elm)) a[x] = elm;
+    put(x, y, z, v = -1){
+        if(!this.isOut(x, y, z)) this.data[z][y][x] = v;
     }
     isOut(x, y, z){
         const {width, height, depth} = this.info;
@@ -49,9 +32,9 @@ export class DQMap {
     input(str){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
         if([info, define, data].some(v => !v)) throw new Error('DQMap needs #info, #define and #data');
-        this.info = toArr(info).reduce((p, [k, v]) => (p[k] = Number(v), p), {});
+        this.info = toArr(info).reduce((p, [k, v]) => (p[k] = toInt(v), p), {});
         this.define = toMap(toArr(define));
-        this.data = parse(data, this.define);
+        parse(data, this.init());
         return this;
     }
     output(zArr = [...new Array(this.depth).keys()]){ // マップデータを文字列化
@@ -63,134 +46,107 @@ export class DQMap {
               ].map(v => v.map(v => v.join(': ')).join('\n'));
         m.set('info', ar[0]);
         m.set('define', ar[1]);
-        m.set('data', stringify({...info, define, data, zArr}));
+        m.set('data', stringify(data, zArr, (this.max - 1).toString().length));
         return [...m].map(([k,v]) => `#${k}\n${v}`).join('\n\n');
     }
 }
-const isEqual = (a, b) => {
-    if(a === b) return true; // null === null
-    else if(a === null || b === null) return false;
-    else if(a.key !== b.key) return false;
-    else if('way' in a && a.way !== b.way) return false;
-    else if('index' in a && a.index !== b.index) return false;
-    else return true;
-};
 const toArr = str => {
     const a = [];
     for(const line of str.split('\n')){
-        const m = line.match(/^[0-9A-Za-z]+:/)?.[0];
+        const m = line.match(/^[0-9A-Za-z]+:(?!\/\/)/)?.[0];
         if(m) a.push([m.slice(0, -1), line.slice(m.length)]);
+        else if(a.length) a[a.length - 1][1] += line;
     }
     return a;
 };
 const toMap = arr => {
     const map = new Map;
     for(const [k, v] of arr){
-        if(/[^0-9]/.test(k)) continue;
-        const key = Number(k);
+        const key = toInt(k);
+        if(Number.isNaN(key)) continue;
         if(map.has(key)) throw new Error(`#define has same keys of ${key}`);
-        const [v0, v1] = v.split('['),
-              index = [];
-        if(v1) for(const v of v1.split(',')) {
-            const n = toInt(v);
-            if(!Number.isNaN(n)) index.push(n);
-        }
-        const arg = v0.split(',');
-        let i = 0;
-        const next = () => arg[i++],
-              obj = {};
-        obj.id = next().match(/[0-9A-Za-z]+/)?.[0];
-        if(/[wasd]/.test(arg[2])) {
-            obj.frame = toInt(next());
-            obj.way = next().replace(/[^wasd]/g, '')
-        }
-        if(index.length) {
-            obj.width = toInt(next());
-            const height = toInt(next());
-            if(!Number.isNaN(height)) obj.height = height;
-            obj.index = index;
-        }
-        map.set(key, obj);
+        const arg = v.split(',').map(v => v.trim());
+        map.set(key, a2o(arg));
     }
     return map;
 };
+const a2o = arg => {
+    const type = toInt(arg[0]),
+          a = arg.slice(1),
+          o = {type},
+          n = a.map(toInt),
+          xy = (i, j) => [n[i], n[j]].map(v => v ? v : 0),
+          wasd = i => a[i].match(/[wasd]+/)?.[0];
+    if([0, 1, 3, 5].includes(type)) {
+        o.url = a[0];
+        if([1, 5].includes(type)) {
+            o.width = n[3];
+            o.height = n[4];
+        }
+    }
+    else if([2, 4, 6, 7].includes(type)) o.parent = n[0];
+    if([1, 2, 5, 6].includes(type)) [o.x, o.y] = xy(1, 2);
+    switch(type){
+        case 3:
+            o.frame = n[1];
+            o.wasd = wasd[2];
+            break;
+        case 5:
+            o.frame = n[5];
+            o.wasd = wasd[6];
+            break;
+        case 8:
+            o.rgba = a[0];
+            break;
+    }
+    return o;
+};
 const toInt = str => Number(str?.match(/[0-9]+/)?.[0]);
-const parse = (data, define) => {
-    const arZ = [];
-    for(const v of data.split(/$[^$]+/g)){
-        const arY = [];
+const parse = (str, that) => {
+    for(const v of str.split(/$[^$]+/g)){
+        const z = toInt(v);
+        let y = 0;
         for(const line of v.split('\n')){
             if(!line.includes(',')) continue;
-            const arX = [];
-            for(const e of line.split(',')){
-                const m = e.match(/[0-9]+/g)?.map(toInt),
-                      key = m?.[0];
-                if(define.has(key)) {
-                    const elm = {key},
-                          obj = define.get(key);
-                    if('way' in obj) {
-                        const way = e.match(/[wasd]/)?.[0];
-                        if(way) elm.way = way;
-                    }
-                    if('index' in obj) elm.index = m[1];
-                    arX.push(elm);
-                }
-                else arX.push(null);
+            for(const [x,e] of line.split(',').entries()){
+                const n = toInt(e);
+                if(!Number.isNaN(n)) that.put(x, y, z, n);
             }
-            arY.push(arX);
+            y++;
         }
-        arZ.push(arY);
     }
-    return arZ;
 };
 const toStr = map => {
     const a = [];
-    for(const [k,v] of map){
-        const ar = [],
-              {id, frame, way, width, height, index} = v;
-        ar.push(id);
-        if('way' in v){
-            ar.push(frame);
-            ar.push(way);
-        }
-        if('index' in v){
-            if(!index.length) continue;
-            ar.push(width);
-            if(height) ar.push(height);
-            ar.push('[' + index.join(', ') + ']');
-        }
-        a.push([k, ar.join(', ')]);
-    }
+    for(const [k,v] of map) a.push([k, o2a(v).join(', ')]);
     return a;
 };
-const stringify = ({width, height, depth, define, data, zArr}) => {
-    let max = 0;
-    const arZ = [];
-    for(const z of zArr){
-        const arY = [];
-        for(let y = 0; y < height; y++){
-            const arX = [];
-            for(let x = 0; x < width; x++){
-                const elm = data[z][y][x];
-                const v = (()=>{
-                    if(!elm) return;
-                    const {key, index, way} = elm,
-                          obj = define.get(key);
-                    if(!obj) return;
-                    let str = key;
-                    if('index' in obj) {
-                        if(!obj.index.includes(index)) return;
-                        str += '-' + index;
-                    }
-                    if('way' in obj) str += way;
-                    if(max < str.length) max = str.length;
-                    return str;
-                })();
-                arX.push(v ? v : '');
-            }
-            arY.push(arX);
-        }
-        arZ.push(arY);
+const o2a = o => {
+    const {type} = o,
+          a = [];
+    if([0, 1, 3, 5].includes(type)) {
+        a.push(o.url);
+        if([1, 5].includes(type)) a.push(o.width, o.height);
     }
-    return arZ.map((z, i) => `$${i}\n` + z.map(y => y.map(x => ' '.repeat(max - x.length) + x).join(',')).join('\n')).join('\n\n');
+    else if([2, 4, 6, 7].includes(type)) a.push(o.parent);
+    if([1, 2, 5, 6].includes(type)) a.push(o.x, o.y);
+    if([3, 5].includes(type)) a.push(o.frame, o.wasd);
+    if(type === 8) a.push(o.rgba);
+    return a;
+};
+const stringify = (data, zArr, max) => {
+    const _z = [];
+    for(const [i,z] of zArr.entries()) {
+        const _y = [];
+        for(const [j,y] of data[z].entries()) {
+            const _x = [];
+            for(const x of data[z][j]) {
+                const s = String(x);
+                _x.push(' '.repeat(max - s.length) + s);
+            }
+            _y.push(_x.join(','));
+        }
+        _z.push(`$${i}\n` + _y.join('\n'));
+    }
+    return _z.join('\n\n');
 };
