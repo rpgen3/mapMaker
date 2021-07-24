@@ -1,16 +1,24 @@
 export {cv, dqMap, update, zMap, input, dMap, unitSize, player, scale};
 const unitSize = 48,
-      input = {y: 6, z: 0, v: {erase: true}},
+      input = {y: 6, z: 0, v: -1},
       zMap = new Map;
 let g_debug;
 const {importAll} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
 const rpgen3 = await importAll([
-    'imgur',
-    'strToImg'
+    'str2img',
+    'url'
 ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
+const loadImg = url => new Promise((resolve, reject) => {
+    const img = new Image;
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    const _url = url.includes('://') ? url : `https://i.imgur.com/${url}.png`;
+    if(rpgen3.getDomain(_url)[1] === 'imgur') img.crossOrigin = 'anonymous';
+    img.src = _url;
+});
 class Sprite {
-    constructor({id}){
-        this.promise = rpgen3.imgur.load(id).then(img => {
+    constructor({url}){
+        this.promise = loadImg(url).then(img => {
             this.img = img;
             this.adjust(img.width, img.height);
             this.isReady = true;
@@ -45,11 +53,11 @@ class Sprite {
         ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
     }
 }
-const s404 = new Sprite({id: 'aY2ef1p'});
+const s404 = new Sprite({url: 'aY2ef1p'});
 await s404.promise;
 class SpriteSplit extends Sprite {
-    constructor({id, width, height, index}){
-        super({id}).promise.then(() => {
+    constructor({url, width, height, index}){
+        super({url}).promise.then(() => {
             if(!this.isReady) return;
             this.adjust(width, height);
             this.index = index;
@@ -64,7 +72,7 @@ class SpriteSplit extends Sprite {
         for(let i = 0; i < maxY; i++) for(let j = 0; j < maxX; j++) a.push([j, i]);
         return a;
     }
-    draw(ctx, x, y, {index}){
+    draw(ctx, x, y, key){
         if(!this.isReady || !this.index.includes(index)) return s404.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index].map(v => v * unitSize) || [0, 0],
               {img, _w, _h, w, h} = this;
@@ -75,14 +83,14 @@ class SpriteSplit extends Sprite {
     }
 }
 class Anime extends Sprite {
-    constructor({id, frame, way}){
-        super({id}).promise.then(() => {
+    constructor({url, frame, wasd}){
+        super({url}).promise.then(() => {
             if(!this.isReady) return;
             const w = this.img.width / frame | 0,
-                  h = this.img.height / way.length | 0;
+                  h = this.img.height / wasd.length | 0;
             this.adjust(w, h);
             this.frame = frame;
-            this.way = way;
+            this.wasd = wasd;
             this.anime = 1200;
             this.stop(false);
             if(frame === 3) this.goAndBack = true;
@@ -101,11 +109,11 @@ class Anime extends Sprite {
         }
         return now / anime * frame | 0;
     }
-    draw(ctx, x, y, {way}, diff = 0){
+    draw(ctx, x, y, key, diff = 0){
         if(!this.isReady) return s404.draw(ctx, x, y);
         const {img, _w, _h, w, h} = this,
               _x = _w * this.calcFrame(),
-              _y = _h * this.way.indexOf(way);
+              _y = _h * this.wasd.indexOf(wasd);
         ctx.drawImage(
             img, _x, _y, _w, _h,
             this.x + x * unitSize, this.y + y * unitSize - diff, w, h
@@ -113,20 +121,20 @@ class Anime extends Sprite {
     }
 }
 class AnimeSplit extends Anime {
-    constructor({id, frame, way, width, height, index}){
-        super({id, frame, way}).promise.then(() => {
+    constructor({url, frame, wasd, width, height, index}){
+        super({url, frame, wasd}).promise.then(() => {
             if(!this.isReady) return;
             this.adjust(width, height);
             this.index = index;
-            this.indexToXY = SpriteSplit.split(this.img, width * frame, height * way.length);
+            this.indexToXY = SpriteSplit.split(this.img, width * frame, height * wasd.length);
         });
     }
-    draw(ctx, x, y, {way, index}, diff = 0){
+    draw(ctx, x, y, key, diff = 0){
         if(!this.isReady || !this.index.includes(index)) return s404.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY?.[index] || [0, 0],
               {img, _w, _h, w, h} = this,
               _xx = _w * (_x * this.frame + this.calcFrame()),
-              _yy = _h * (_y * this.way.length + this.way.indexOf(way));
+              _yy = _h * (_y * this.wasd.length + this.wasd.indexOf(wasd));
         ctx.drawImage(
             img,
             _xx, _yy, _w, _h,
@@ -136,35 +144,21 @@ class AnimeSplit extends Anime {
 }
 const dMap = new class {
     constructor(){
-        this.map = new Map;
-    }
-    get(k){
-        return this.map.get(k);
-    }
-    has(k){
-        return this.map.has(k);
-    }
-    delete(k){
-        this.map.delete(k);
-        return this;
-    }
-    clear(){
-        this.map.clear();
-        return this;
+        this.m = new Map;
     }
     set(k, v){
-        const {map, judge} = this,
+        const {m, judge} = this,
               obj = new (judge(v))(v);
-        map.set(k, obj);
+        m.set(k, obj.type);
         return obj;
     }
-    judge(obj){
-        const a = 'way' in obj,
-              b = 'index' in obj;
-        if(a && b) return AnimeSplit;
-        else if(a) return Anime;
-        else if(b) return SpriteSplit;
-        else return Sprite;
+    judge(type){
+        switch(type) {
+            case 0: return Sprite;
+            case 1: return SpriteSplit;
+            case 2: return Anime;
+            case 3: return AnimeSplit;
+        }
     }
 };
 const frame = new class {
@@ -197,10 +191,9 @@ const frame = new class {
     }
     draw({ctx, x, y, z, _x, _y}){
         if(dqMap.isOut(x, y, z)) return;
-        const elm = dqMap.data[z][y][x];
-        if(!elm) return;
-        const {key, index, way} = elm;
-        dMap.get(key)?.draw(ctx, _x, _y, {index, way}, input.y);
+        const key = data[z][y][x];
+        if(!dqMap.define.has(key)) return;
+        dMap.m.get(key)?.draw(ctx, _x, _y, key, input.y);
     }
     _f(w, width){
         const pivot = w >> 1;
@@ -244,11 +237,11 @@ const player = new class {
         this.timeIdx = 0;
         this.lastTime = 0;
         this._time = null;
-        this.way = 's';
-        this.costume = this.default = new Anime({id: 'fFrt63r', frame: 2, way: 'wdsa'});
+        this.wasd = 's';
+        this.costume = this.default = new Anime({url: 'fFrt63r', frame: 2, wasd: 'wdsa'});
     }
-    set(way){
-        this.way = way;
+    set(wasd){
+        this.wasd = wasd;
         return this;
     }
     update(ctx){
@@ -273,16 +266,15 @@ const player = new class {
         this.nowX = x - (x - _x) * rate;
         this.nowY = y - (y - _y) * rate;
     }
-    dressUp(key = null, index){
-        if(key === null) return (this.costume = this.default);
-        if(!dMap.has(key)) return;
-        this.costume = dMap.get(key);
+    dressUp(key){
+        if(!dMap.m.has(key)) return (this.costume = this.default);
+        this.costume = dMap.m.get(key);
         this.index = index;
     }
     draw(ctx){
-        const {nowX, nowY, way, index} = this;
+        const {nowX, nowY, wasd, index} = this;
         if(!this.costume) this.costume = this.default;
-        this.costume.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {way, index}, input.y);
+        this.costume.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), {wasd, index}, input.y);
     }
     goto(x, y){
         const {width, height} = dqMap.info;
@@ -302,11 +294,11 @@ const player = new class {
         this.timeIdx = (this.timeIdx + 1) % this.times.length;
         this.default.anime = this.times[this.timeIdx] * 6;
     }
-    put(v = null){
+    put(v){
         const {z} = input;
         if(!zMap.get(z)) return;
         const {x, y} = this;
-        dqMap.put(x, y, z, v === null || v.erase ? null : v);
+        dqMap.put(x, y, z, v);
     }
 };
 const rpgen4 = await importAll([
@@ -363,7 +355,7 @@ class SimpleText {
     update(ctx){
         const {x, y, text, color, size} = this;
         ctx.fillStyle = color;
-        ctx.font = `bold ${size}px 'ＭＳ ゴシック'`;
+        ctx.font = `bold ${size}px 'MS ゴシック'`;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.fillText(text, x, y);
