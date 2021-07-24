@@ -71,9 +71,9 @@ const toMap = arr => {
         if([1, 3].includes(o.type)) {
             if(!index) continue;
             o.index = index;
-            o.first = first;
-            o.end = end;
         }
+        o.first = first;
+        o.end = end;
         for(let i = first; i <= end; i++) map.set(i, o);
     }
     return map;
@@ -125,8 +125,10 @@ const toStr = map => {
     for(const [k,v] of map) {
         if(log.includes(v)) continue;
         log.push(v);
-        const a = o2a(v);
-        if(a) arr.push([k, a.join(', ')]);
+        const a = o2a(v),
+              {first, end} = v,
+              _k = first < end && `${first}~${end}`;
+        if(a) arr.push([_k || k, a.join(', ')]);
     }
     return arr;
 };
