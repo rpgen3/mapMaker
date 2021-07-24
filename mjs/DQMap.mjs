@@ -62,38 +62,40 @@ const toArr = str => {
 const toMap = arr => {
     const map = new Map;
     for(const [k, v] of arr){
-        const key = toInt(k);
-        if(Number.isNaN(key)) continue;
-        if(map.has(key)) throw new Error(`#define has same keys of ${key}`);
-        const arg = v.split(',').map(v => v.trim());
-        map.set(key, a2o(arg));
+        const keys = toInts(k);
+        if(!keys) continue;
+        const [first, end = first] = keys,
+              [v0, v1] = v.split('['),
+              o = a2o(v0.split(',').map(v => v.trim())),
+              index = v1 && toInts(v1);
+        if([1, 3].includes(o.type)) {
+            if(!index) continue;
+            o.index = index;
+            o.first = first;
+            o.end = end;
+        }
+        for(let i = first; i <= end; i++) map.set(i, o);
     }
     return map;
 };
 const a2o = arg => {
     const type = toInt(arg[0]),
-          a = arg.slice(1),
           o = {type},
-          n = a.map(toInt),
-          xy = (i, j) => [n[i], n[j]].map(v => v ? v : 0),
-          wasd = i => a[i].match(/[wasd]+/)?.[0];
-    if([0, 1, 3, 5].includes(type)) {
-        o.url = a[0];
-        if([1, 5].includes(type)) {
+          a = arg.slice(1),
+          n = a.map(toInt);
+    if([0, 1, 2, 3].includes(type)) o.url = a[0];
+    if([2, 3].includes(type)) {
+        o.frame = n[1];
+        o.wasd = a[2].replace(/[^wasd]/g, '');
+    }
+    switch(type){
+        case 1:
+            o.width = n[1];
+            o.height = n[2];
+            break;
+        case 3:
             o.width = n[3];
             o.height = n[4];
-        }
-    }
-    else if([2, 4, 6, 7].includes(type)) o.parent = n[0];
-    if([1, 2, 5, 6].includes(type)) [o.x, o.y] = xy(1, 2);
-    switch(type){
-        case 3:
-            o.frame = n[1];
-            o.wasd = wasd[2];
-            break;
-        case 5:
-            o.frame = n[5];
-            o.wasd = wasd[6];
             break;
         case 8:
             o.rgba = a[0];
@@ -101,7 +103,8 @@ const a2o = arg => {
     }
     return o;
 };
-const toInt = str => Number(str?.match(/[0-9]+/)?.[0]);
+const toInts = str => str?.match(/[0-9]+/g)?.map(Number),
+      toInt = str => toInts(str)?.[0];
 const parse = (str, that) => {
     for(const v of str.split(/$[^$]+/g)){
         const z = toInt(v);
@@ -117,20 +120,25 @@ const parse = (str, that) => {
     }
 };
 const toStr = map => {
-    const a = [];
-    for(const [k,v] of map) a.push([k, o2a(v).join(', ')]);
-    return a;
+    const arr = [],
+          log = [];
+    for(const [k,v] of map) {
+        if(log.includes(v)) continue;
+        log.push(v);
+        const a = o2a(v);
+        if(a) arr.push([k, a.join(', ')]);
+    }
+    return arr;
 };
 const o2a = o => {
     const {type} = o,
           a = [];
-    if([0, 1, 3, 5].includes(type)) {
-        a.push(o.url);
-        if([1, 5].includes(type)) a.push(o.width, o.height);
+    if([0, 1, 2, 3].includes(type)) a.push(o.url);
+    if([2, 3].includes(type)) a.push(o.frame, o.wasd);
+    if([1, 3].includes(type)) {
+        if(o.index.length) return;
+        a.push(o.width, o.height, `[${o.index.join(', ')}]`);
     }
-    else if([2, 4, 6, 7].includes(type)) a.push(o.parent);
-    if([1, 2, 5, 6].includes(type)) a.push(o.x, o.y);
-    if([3, 5].includes(type)) a.push(o.frame, o.wasd);
     if(type === 8) a.push(o.rgba);
     return a;
 };
