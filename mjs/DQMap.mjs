@@ -126,8 +126,8 @@ const toStr = map => {
         if(log.includes(v)) continue;
         log.push(v);
         const a = o2a(v),
-              {first, end} = v,
-              _k = first < end && `${first}~${end}`;
+              {first, last} = v,
+              _k = first < last && `${first}~${last}`;
         if(a) arr.push([_k || k, a.join(', ')]);
     }
     return arr;
