@@ -167,10 +167,10 @@ const dMap = new class {
         this.m = new Map;
     }
     set(v){
-        const {m, judge} = this,
-              obj = new (judge(v.type))(v);
-        for(let i = v.first; i <= v.last; i++) m.set(i, obj);
-        return obj;
+        for(let i = v.first; i <= v.last; i++) this.m.set(i, v);
+    }
+    make(v){
+        return new (this.judge(v.type))(v);
     }
     judge(type){
         switch(type) {
