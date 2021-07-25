@@ -163,14 +163,7 @@ class AnimeSplit extends Anime {
         return (key - first) / way.length | 0;
     }
 }
-const factory = v => new ((()=>{
-    switch(v.type) {
-        case 0: return Sprite;
-        case 1: return SpriteSplit;
-        case 2: return Anime;
-        case 3: return AnimeSplit;
-    }
-})())(v);
+const factory = v => new [Sprite, SpriteSplit, Anime, AnimeSplit][v.type](v);
 const frame = new class {
     constructor(){
         this.x = this.y = this._x = this._y = 0;
