@@ -18,6 +18,7 @@ const loadImg = url => new Promise((resolve, reject) => {
 });
 class Sprite {
     constructor({url}){
+        this.url = url;
         this.promise = loadImg(url).then(img => {
             this.img = img;
             this.adjust(img.width, img.height);
@@ -25,7 +26,7 @@ class Sprite {
         });
     }
     adjust(width, height){ // 位置調整
-        [this._w, this._h] = [width, height];
+        [this.width, this.height] = [width, height];
         let w, h, x, y;
         if(width > unitSize && height > unitSize){
             [w, h] = [width, height];
@@ -78,9 +79,9 @@ class SpriteSplit extends Sprite {
         const index = key - this.first;
         if(!this.index.includes(index)) return s404.draw(ctx, x, y);
         const [_x, _y] = this.indexToXY[index] || [0, 0],
-              {img, _w, _h, w, h} = this;
+              {img, width, height, w, h} = this;
         ctx.drawImage(
-            img, _x * _w, _y * _h, _w, _h,
+            img, _x * width, _y * height, width, height,
             this.x + x * unitSize, this.y + y * unitSize, w, h
         );
     }
@@ -115,11 +116,11 @@ class Anime extends Sprite {
     }
     draw(ctx, x, y, key, diff = 0){
         if(!this.isReady) return s404.draw(ctx, x, y);
-        const {img, _w, _h, w, h} = this,
-              _x = _w * this.calcFrame(),
-              _y = _h * (key - this.first);
+        const {img, width, height, w, h} = this,
+              _x = width * this.calcFrame(),
+              _y = height * (key - this.first);
         ctx.drawImage(
-            img, _x, _y, _w, _h,
+            img, _x, _y, width, height,
             this.x + x * unitSize, this.y + y * unitSize - diff, w, h
         );
     }
@@ -143,13 +144,13 @@ class AnimeSplit extends Anime {
         if(!this.index.includes(index)) return s404.draw(ctx, x, y);
         const first = this.getFirst(key),
               [_x, _y] = this.indexToXY[index] || [0, 0],
-              {img, _w, _h, w, h} = this,
-              _xx = _w * (_x * this.frame + this.calcFrame()),
+              {img, width, height, w, h} = this,
+              _xx = width * (_x * this.frame + this.calcFrame()),
               {length} = this.way,
-              _yy = _h * (_y * length + (key - first) % length);
+              _yy = height * (_y * length + (key - first) % length);
         ctx.drawImage(
             img,
-            _xx, _yy, _w, _h,
+            _xx, _yy, width, height,
             this.x + x * unitSize, this.y + y * unitSize - diff, w, h
         );
     }
