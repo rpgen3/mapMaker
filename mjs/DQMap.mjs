@@ -3,6 +3,9 @@ export class DQMap {
         this.info = {};
         this.define = new Map;
     }
+    setDefine(v){
+        for(let i = v.first; i <= v.last; i++) this.define.set(i, v);
+    }
     set(width, height, depth){
         const {info} = this;
         info.width = width;
@@ -86,7 +89,7 @@ const a2o = arg => {
     if([0, 1, 2, 3].includes(type)) o.url = a[0];
     if([2, 3].includes(type)) {
         o.frame = n[1];
-        o.wasd = a[2].replace(/[^wasd]/g, '');
+        o.way = a[2].replace(/[^wasd]/g, '');
     }
     switch(type){
         case 1:
@@ -136,7 +139,7 @@ const o2a = o => {
     const {type} = o,
           a = [];
     if([0, 1, 2, 3].includes(type)) a.push(o.url);
-    if([2, 3].includes(type)) a.push(o.frame, o.wasd);
+    if([2, 3].includes(type)) a.push(o.frame, o.way);
     if([1, 3].includes(type)) {
         if(o.index.length) return;
         a.push(o.width, o.height, `[${o.index.join(', ')}]`);
