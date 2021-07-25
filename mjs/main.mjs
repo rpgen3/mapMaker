@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap, input, dMap, unitSize, player, scale};
+export {cv, dqMap, update, zMap, input, make, unitSize, player, scale};
 const unitSize = 48,
       input = {y: 6, z: 0, v: -1},
       zMap = new Map;
@@ -86,14 +86,14 @@ class SpriteSplit extends Sprite {
     }
 }
 class Anime extends Sprite {
-    constructor({url, frame, wasd, first}){
+    constructor({url, frame, way, first}){
         super({url}).promise.then(() => {
             if(!this.isReady) return;
             this.frame = frame;
-            this.wasd = wasd;
+            this.way = way;
             this.first = first;
             const w = this.img.width / frame | 0,
-                  h = this.img.height / wasd.length | 0;
+                  h = this.img.height / way.length | 0;
             this.adjust(w, h);
             this.anime = 1200;
             this.stop(false);
@@ -123,18 +123,18 @@ class Anime extends Sprite {
             this.x + x * unitSize, this.y + y * unitSize - diff, w, h
         );
     }
-    getKey(wasd = this.wasd[0]){ // 引数の方向になったキーを返す
-        const idx = this.wasd.indexOf(wasd);
+    getKey(way = this.way[0]){ // 引数の方向になったキーを返す
+        const idx = this.way.indexOf(way);
         return idx === -1 ? null : idx + this.first;
     }
 }
 class AnimeSplit extends Anime {
-    constructor({url, frame, wasd, width, height, index, first}){
-        super({url, frame, wasd, first}).promise.then(() => {
+    constructor({url, frame, way, width, height, index, first}){
+        super({url, frame, way, first}).promise.then(() => {
             if(!this.isReady) return;
             this.index = index;
             this.adjust(width, height);
-            this.indexToXY = SpriteSplit.split(this.img, width * frame, height * wasd.length);
+            this.indexToXY = SpriteSplit.split(this.img, width * frame, height * way.length);
         });
     }
     draw(ctx, x, y, key, diff = 0){
@@ -145,7 +145,7 @@ class AnimeSplit extends Anime {
               [_x, _y] = this.indexToXY[index] || [0, 0],
               {img, _w, _h, w, h} = this,
               _xx = _w * (_x * this.frame + this.calcFrame()),
-              {length} = this.wasd,
+              {length} = this.way,
               _yy = _h * (_y * length + (key - first) % length);
         ctx.drawImage(
             img,
@@ -153,34 +153,23 @@ class AnimeSplit extends Anime {
             this.x + x * unitSize, this.y + y * unitSize - diff, w, h
         );
     }
-    getKey(wasd, key){ // 引数の方向になったキーを返す
-        const res = super.getKey(wasd);
-        return res === -1 ? null : res + this.getIndex(key) * this.wasd.length;
+    getKey(way, key){ // 引数の方向になったキーを返す
+        const res = super.getKey(way);
+        return res === -1 ? null : res + this.getIndex(key) * this.way.length;
     }
     getIndex(key){ // キーの値から所属番号を取得
-        const {wasd, first} = this;
-        return (key - first) / wasd.length | 0;
+        const {way, first} = this;
+        return (key - first) / way.length | 0;
     }
 }
-const dMap = new class {
-    constructor(){
-        this.m = new Map;
+const make = v => new ((()=>{
+    switch(v.type) {
+        case 0: return Sprite;
+        case 1: return SpriteSplit;
+        case 2: return Anime;
+        case 3: return AnimeSplit;
     }
-    set(v){
-        for(let i = v.first; i <= v.last; i++) this.m.set(i, v);
-    }
-    make(v){
-        return new (this.judge(v.type))(v);
-    }
-    judge(type){
-        switch(type) {
-            case 0: return Sprite;
-            case 1: return SpriteSplit;
-            case 2: return Anime;
-            case 3: return AnimeSplit;
-        }
-    }
-};
+})())(v);
 const frame = new class {
     constructor(){
         this.x = this.y = this._x = this._y = 0;
@@ -213,7 +202,7 @@ const frame = new class {
         if(dqMap.isOut(x, y, z)) return;
         const key = data[z][y][x];
         if(!dqMap.define.has(key)) return;
-        dMap.m.get(key)?.draw(ctx, _x, _y, key, input.y);
+        dqMap.define.get(key)?.obj.draw(ctx, _x, _y, key, input.y);
     }
     _f(w, width){
         const pivot = w >> 1;
@@ -257,12 +246,12 @@ const player = new class {
         this.timeIdx = 0;
         this.lastTime = 0;
         this._time = null;
-        this.wasd = 's';
-        this.costume = this.default = new Anime({url: 'fFrt63r', frame: 2, wasd: 'wdsa', first: 0});
+        this.way = 's';
+        this.costume = this.default = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa', first: 0});
     }
-    set(wasd){
-        this.wasd = wasd;
-        if([2, 3].includes(this.costume.type)) this.key = this.getKey(wasd, this.key);
+    set(way){
+        this.way = way;
+        if([2, 3].includes(this.costume.type)) this.key = this.getKey(way, this.key);
         return this;
     }
     update(ctx){
@@ -288,12 +277,12 @@ const player = new class {
         this.nowY = y - (y - _y) * rate;
     }
     dressUp(key){
-        if(!dMap.m.has(key)) return (this.costume = this.default);
-        this.costume = dMap.m.get(key);
+        if(!dqMap.define.has(key)) return (this.costume = this.default);
+        this.costume = dqMap.define.get(key).obj;
         this.key = key;
     }
     draw(ctx){
-        const {nowX, nowY, wasd, index} = this;
+        const {nowX, nowY, way, index} = this;
         if(!this.costume) this.costume = this.default;
         this.costume.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), this.key, input.y);
     }
