@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap, input, make, unitSize, player, scale};
+export {cv, dqMap, update, zMap, input, setObj, unitSize, player, scale};
 const unitSize = 48,
       input = {y: 6, z: 0, v: -1},
       zMap = new Map;
@@ -162,14 +162,16 @@ class AnimeSplit extends Anime {
         return (key - first) / way.length | 0;
     }
 }
-const make = v => new ((()=>{
-    switch(v.type) {
-        case 0: return Sprite;
-        case 1: return SpriteSplit;
-        case 2: return Anime;
-        case 3: return AnimeSplit;
-    }
-})())(v);
+const setObj = v => {
+    v.obj = new ((()=>{
+        switch(v.type) {
+            case 0: return Sprite;
+            case 1: return SpriteSplit;
+            case 2: return Anime;
+            case 3: return AnimeSplit;
+        }
+    })())(v);
+};
 const frame = new class {
     constructor(){
         this.x = this.y = this._x = this._y = 0;
