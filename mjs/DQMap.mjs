@@ -64,7 +64,7 @@ const toMap = arr => {
     for(const [k, v] of arr){
         const keys = toInts(k);
         if(!keys) continue;
-        const [first, end = first] = keys,
+        const [first, last = first] = keys,
               [v0, v1] = v.split('['),
               o = a2o(v0.split(',').map(v => v.trim())),
               index = v1 && toInts(v1);
@@ -73,8 +73,8 @@ const toMap = arr => {
             o.index = index;
         }
         o.first = first;
-        o.end = end;
-        for(let i = first; i <= end; i++) map.set(i, o);
+        o.last = last;
+        for(let i = first; i <= last; i++) map.set(i, o);
     }
     return map;
 };
