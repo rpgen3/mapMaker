@@ -171,6 +171,7 @@ const setObj = v => {
             case 3: return AnimeSplit;
         }
     })())(v);
+    return v.obj;
 };
 const frame = new class {
     constructor(){
