@@ -32,11 +32,12 @@ export class DQMap {
     get next(){
         return Math.max(...this.define.keys(), -1) + 1;
     }
-    input(str){ // 文字列からマップデータを読み込む
+    input(str, func = v => v){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
         if([info, define, data].some(v => !v)) throw new Error('DQMap needs #info, #define and #data');
         this.info = toArr(info).reduce((p, [k, v]) => (p[k] = toInt(v), p), {});
-        this.define = toMap(toArr(define));
+        this.define = new Map;
+        for(const v of toArr2(toArr(define))) this.setDefine(func(v));
         parse(data, this.init());
         return this;
     }
@@ -62,8 +63,8 @@ const toArr = str => {
     }
     return a;
 };
-const toMap = arr => {
-    const map = new Map;
+const toArr2 = arr => {
+    const a = [];
     for(const [k, v] of arr){
         const keys = toInts(k);
         if(!keys) continue;
@@ -77,9 +78,9 @@ const toMap = arr => {
         }
         o.first = first;
         o.last = last;
-        for(let i = first; i <= last; i++) map.set(i, o);
+        a.push(o);
     }
-    return map;
+    return a;
 };
 const a2o = arg => {
     const type = toInt(arg[0]),
