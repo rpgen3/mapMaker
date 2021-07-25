@@ -1,5 +1,5 @@
 0, url
 1, url, width, height, index
-2, url, frame, wasd
-3, url, frame, wasd, width, height, index
+2, url, frame, way
+3, url, frame, way, width, height, index
 4, #RGB[A]
