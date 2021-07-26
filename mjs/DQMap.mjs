@@ -151,7 +151,7 @@ const o2a = o => {
     if([0, 1, 2, 3].includes(type)) a.push(o.url);
     if([2, 3].includes(type)) a.push(o.frame, o.way);
     if([1, 3].includes(type)) {
-        if(o.index.length) return;
+        if(!o.index.length) return;
         a.push(o.width, o.height, `[${o.index.join(', ')}]`);
     }
     if(type === 8) a.push(o.rgba);
