@@ -140,7 +140,7 @@ const toStr = list => {
     for(const v of list) {
         const a = o2a(v),
               {first, last} = v,
-              _k = first < last && `${first}~${last}`;
+              _k = first < last && `${first}-${last}`;
         if(a) arr.push([_k || first, a.join(', ')]);
     }
     return arr;
