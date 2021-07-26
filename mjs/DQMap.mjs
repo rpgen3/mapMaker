@@ -122,7 +122,7 @@ const a2o = arg => {
 const toInts = str => str?.match(/[0-9]+/g)?.map(Number),
       toInt = str => toInts(str)?.[0];
 const parse = (str, that) => {
-    for(const v of str.split(/$[^$]+/g)){
+    for(const v of str.split('$')){
         const z = toInt(v);
         let y = 0;
         for(const line of v.split('\n')){
