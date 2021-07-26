@@ -1,6 +1,6 @@
 export {cv, dqMap, update, zMap, input, factory, unitSize, player, scale};
 const unitSize = 48,
-      input = {y: 6, z: 0, v: -1},
+      input = {y: 6, z: 0, k: -1},
       zMap = new Map;
 let g_debug;
 const {importAll} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
@@ -250,7 +250,7 @@ const player = new class {
     }
     update(ctx){
         const {x, y, _x, _y, time, _time} = this;
-        if(isKeyDown(['z'])) this.put(input.v);
+        if(isKeyDown(['z'])) this.put(input.k);
         else if(isKeyDown(['x'])) this.put();
         else if(isKeyDown(['f'])) this.speedUp();
         let rate = 0;
