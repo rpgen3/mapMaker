@@ -239,12 +239,14 @@ const player = new class {
         this.timeIdx = 0;
         this.lastTime = 0;
         this._time = null;
-        this.way = 's';
         this.costume = this.default = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa', first: 0});
+        this.costume.promise(() => {
+            this.key = this.getKey('s');
+        });
     }
     set(way){
-        this.way = way;
-        if([2, 3].includes(this.costume.type)) this.key = this.getKey(way, this.key);
+        const {type} = this.costume;
+        if(type === 2 || type === 3) this.key = this.getKey(way, this.key);
         return this;
     }
     update(ctx){
