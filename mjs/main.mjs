@@ -128,6 +128,10 @@ class Anime extends Sprite {
         const idx = this.way.indexOf(way);
         return idx === -1 ? null : idx + this.first;
     }
+    getWay(key){ // 引数の方向を返す
+        const {first, way} = this;
+        return way[(key - first) % way.length];
+    }
 }
 class AnimeSplit extends Anime {
     constructor({url, frame, way, width, height, index, first}){
