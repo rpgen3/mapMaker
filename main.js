@@ -277,32 +277,32 @@
         win.delete();
     };
     const addTr = async (tbody, obj) => {
-        const {type, first} = obj;
+        const {type, first} = obj,
+              s = type === 2 || type === 3 ? obj.getKey('s') : null;
         if(type === 1 || type === 3){
             const {index} = obj;
             for(const i of obj.index) {
                 if(type === 1){
                     const k = first + i;
-                    makeTr(obj, k, k);
+                    makeTr(obj, k, s, k).appendTo(tbody);
                 }
                 else {
                     const {length} = obj.way,
                           k = first + i * length;
-                    makeTr(obj, k, `${k}~${k + length - 1}`);
+                    makeTr(obj, k, s, `${k}~${k + length - 1}`).appendTo(tbody);
                 }
                 await sleep(10);
             }
         }
         else {
             makeTr(
-                obj, first.getKey?.('s'),
+                obj, null, s,
                 type === 2 ? `${first}~${first + obj.way.length - 1}` : first
             ).appendTo(tbody);
         }
     };
     const deleteKey = (obj, key) => {
-        const {type} = obj,
-              del = k => dqMap.define.delete(k),
+        const del = k => dqMap.define.delete(k),
               dels = k => {
                   for(let i = 0; i < obj.way.length; i++) del(k + i);
               },
@@ -311,7 +311,7 @@
                         idx = index.indexOf(i);
                   if(idx !== -1) index.splice(idx, 1);
               };
-        switch(type){
+        switch(obj.type){
             case 0:
                 del(key);
                 break;
@@ -329,11 +329,11 @@
         }
         $('.' + paletteKeyClass(key)).remove();
     };
-    const makeTr = (obj, key, ttl) => {
+    const makeTr = (obj, key, s, ttl) => {
         const tr = $('<tr>');
         $('<th>').appendTo(tr).text(ttl);
-        $('<td>').appendTo(tr).append(makeCanvas(obj, key));
-        $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
+        $('<td>').appendTo(tr).append(makeCanvas(obj, s));
+        $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',() => {
             tr.remove();
             deleteKey(obj, key);
         });
