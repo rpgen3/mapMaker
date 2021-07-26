@@ -13,7 +13,6 @@
         'css',
         'hankaku',
         'input',
-        'imgur',
         'url',
         'util',
         'random'
@@ -166,7 +165,7 @@
               thead = $('<thead>').appendTo(table),
               tr = $('<tr>').appendTo(thead);
         for(const str of [
-            'id', 'imgurID', 'img', 'delete'
+            'id', 'img', 'delete'
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => openWindowSelect(tbody));
@@ -176,15 +175,15 @@
         const win = Win.make('追加する素材のタイプを選択');
         if(!win) return;
         const {elm} = win;
-        for(const [i,v] of tipType.entries()) $('<button>').appendTo(elm).text(v).on('click', () => openWindowInputImgur(tbody, i));
+        for(const [i,v] of tipType.entries()) $('<button>').appendTo(elm).text(v).on('click', () => openWindowInputURL(tbody, i));
     };
     const tipType = (()=>{
         const a = ['単体', '複数'],
               b = ['マップチップ', '歩行グラ'];
         return [...new Array(4)].map((v,i) => `${a[i % 2]}の${b[i >> 1]}`);
     })();
-    const openWindowInputImgur = async (tbody, type) => {
-        const win = Win.make('imgurIDを新規追加');
+    const openWindowInputURL = async (tbody, type) => {
+        const win = Win.make('定義を新規追加');
         if(!win) return;
         const {elm} = win,
               isSplit = type % 2 === 1,
@@ -237,53 +236,44 @@
                 save: true
             });
         }
-        $('<div>').appendTo(elm).text('以下にURLかimgurIDを入力');
-        $('<div>').appendTo(elm).text('複数の入力も可');
-        const inputImgur = rpgen3.addInputStr(elm,{
-            label: '入力欄',
-            textarea: true
+        const inputURL = rpgen3.addInputStr(elm,{
+            label: 'URLの入力欄'
         });
-        inputImgur.elm.focus();
+        inputURL.elm.focus();
         await promiseBtn(elm, '決定');
         $(elm).text('入力値が正しいか判定中');
-        const urls = rpgen3.findURL(inputImgur()),
-              arr = urls.length ? urls.filter(v => rpgen3.getDomain(v)[1] === 'imgur')
-        .map(v => v.slice(v.lastIndexOf('/') + 1, v.lastIndexOf('.'))) : inputImgur().match(/[0-9A-Za-z]+/g);
-        if(!arr) return;
-        const {next} = dqMap;
-        let i = 0;
-        for(const id of arr){
-            const obj = {id};
-            if(isAnime){
-                const f = toInt(inputframe),
-                      w = inputWay();
-                if(!f) throw 'フレーム数の値が不正です';
-                if(!/[wasd]/.test(w)) throw '方向の定義の値が不正です';
-                obj.frame = f;
-                obj.way = w;
-            }
-            if(isSplit){
-                const w = toInt(inputWidth),
-                      h = toInt(inputHeight);
-                if(!w || !h) throw '幅・高さの値が0です';
-                obj.width = w;
-                obj.height = h;
-            }
-            $(elm).text('登録処理を実行中');
-            await factory(obj).promise;
-            if(type === 1 || type === 3) obj.index = [...obj.indexToXY.keys()];
-            obj.first = next + i;
-            const {index, way} = this,
-                  _i = index?.length,
-                  _w = way?.length;
-            obj.last = obj.first - 1 + [1, _i, _w, _i * _w][type];
-            dqMap.setDefine(obj);
-            await Promise.all([
-                addTr(tbody, obj),
-                addPalette(obj)
-            ]);
-            i++;
+        const url = rpgen3.findURL(inputURL())[0];
+        if(!url) return;
+        const {next} = dqMap,
+              obj = {type, url};
+        if(isAnime){
+            const f = toInt(inputframe),
+                  w = inputWay();
+            if(!f) throw 'フレーム数の値が不正です';
+            if(!/[wasd]/.test(w)) throw '方向の定義の値が不正です';
+            obj.frame = f;
+            obj.way = w;
         }
+        if(isSplit){
+            const w = toInt(inputWidth),
+                  h = toInt(inputHeight);
+            if(!w || !h) throw '幅・高さの値が0です';
+            obj.width = w;
+            obj.height = h;
+        }
+        $(elm).text('登録処理を実行中');
+        await factory(obj).promise;
+        if(type === 1 || type === 3) obj.index = [...obj.indexToXY.keys()];
+        obj.first = next;
+        const {index, way} = this,
+              _i = index?.length,
+              _w = way?.length;
+        obj.last = obj.first - 1 + [1, _i, _w, _i * _w][type];
+        dqMap.setDefine(obj);
+        await Promise.all([
+            addTr(tbody, obj),
+            addPalette(obj)
+        ]);
         win.delete();
     };
     const addTr = async (tbody, obj) => {
