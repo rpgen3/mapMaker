@@ -276,9 +276,10 @@
         ]);
         win.delete();
     };
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     const addTr = async (tbody, obj) => {
         const {type, first} = obj,
-              s = type === 2 || type === 3 ? obj.getKey('s') : null;
+              s = type === 2 || type === 3 ? obj.getKey('s', first) - first : null;
         if(type === 1 || type === 3){
             const {index} = obj;
             for(const i of obj.index) {
@@ -291,7 +292,7 @@
                           k = first + i * length;
                     makeTr(obj, k, s, `${k}~${k + length - 1}`).appendTo(tbody);
                 }
-                await sleep(10);
+                await sleep(50);
             }
         }
         else {
@@ -332,14 +333,13 @@
     const makeTr = (obj, key, s, ttl) => {
         const tr = $('<tr>');
         $('<th>').appendTo(tr).text(ttl);
-        $('<td>').appendTo(tr).append(makeCanvas(obj, s));
+        $('<td>').appendTo(tr).append(makeCanvas(obj, key + s));
         $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',() => {
             tr.remove();
             deleteKey(obj, key);
         });
         return tr;
     };
-    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     const makeCanvas = (obj, key) => {
         const cv = $('<canvas>').prop({width: unitSize, height: unitSize}),
               ctx = cv.get(0).getContext('2d');
@@ -453,7 +453,7 @@
                           k = first + i * length;
                     makePalette(obj, obj.getKey('s', k)).appendTo(elm);
                 }
-                await sleep(10);
+                await sleep(50);
             }
         }
         else makePalette(obj, obj.getKey?.('s')).appendTo(elm);
