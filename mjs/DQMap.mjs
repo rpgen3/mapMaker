@@ -147,7 +147,7 @@ const toStr = list => {
 };
 const o2a = o => {
     const {type} = o,
-          a = [];
+          a = [type];
     if([0, 1, 2, 3].includes(type)) a.push(o.url);
     if([2, 3].includes(type)) a.push(o.frame, o.way);
     if([1, 3].includes(type)) {
