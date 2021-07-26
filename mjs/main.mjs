@@ -163,7 +163,7 @@ class AnimeSplit extends Anime {
         return (key - first) / way.length | 0;
     }
 }
-const factory = v => new [Sprite, SpriteSplit, Anime, AnimeSplit][v.type](v);
+const factory = v => new ([Sprite, SpriteSplit, Anime, AnimeSplit][v.type])(v);
 const frame = new class {
     constructor(){
         this.x = this.y = this._x = this._y = 0;
