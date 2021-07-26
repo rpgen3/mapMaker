@@ -240,7 +240,7 @@ const player = new class {
         this.lastTime = 0;
         this._time = null;
         this.costume = this.default = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa', first: 0});
-        this.costume.promise(() => {
+        this.costume.promise.then(() => {
             this.key = this.getKey('s');
         });
     }
