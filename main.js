@@ -88,7 +88,8 @@
             for(const [k,v] of this.m) v.delete();
         }
     };
-    const toInt = str => Number(rpgen3.toHan(String(str)).match(/[0-9]+/)?.[0]) || 0,
+    const toInts = str => rpgen3.toHan(str)?.match(/[0-9]+/g)?.map(Number),
+          toInt = str => toInts(str)?.[0],
           promiseBtn = (elm, ttl) => new Promise(resolve => $('<button>').appendTo(elm).text(ttl).on('click', resolve));
     const openWindowInit = async () => {
         const win = Win.make('パラメータを設定して初期化');
@@ -506,9 +507,7 @@
         ].map(([func, param]) => {
             const input = rpgen3.addInputStr(elm, param);
             input.elm.on('change',()=>{
-                const m = input().match(/[0-9]+/g);
-                if(!m) return;
-                player[func](...m.map(Number));
+                player[func](...toInts(input()));
             });
         });
         $('<button>').appendTo(elm).text('デフォルト衣装').on('click', () => player.dressUp());
