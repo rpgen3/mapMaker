@@ -17,7 +17,8 @@ const loadImg = url => new Promise((resolve, reject) => {
     img.src = _url;
 });
 class Sprite {
-    constructor({url}){
+    constructor({type, url}){
+        this.type = type;
         this.url = url;
         this.promise = loadImg(url).then(img => {
             this.img = img;
@@ -57,8 +58,8 @@ class Sprite {
 const s404 = new Sprite({url: 'aY2ef1p'});
 await s404.promise;
 class SpriteSplit extends Sprite {
-    constructor({url, width, height, index, first}){
-        super({url}).promise.then(() => {
+    constructor({type, url, width, height, index, first}){
+        super({type, url}).promise.then(() => {
             if(!this.isReady) return;
             this.index = index;
             this.first = first;
@@ -87,8 +88,8 @@ class SpriteSplit extends Sprite {
     }
 }
 class Anime extends Sprite {
-    constructor({url, frame, way, first}){
-        super({url}).promise.then(() => {
+    constructor({type, url, frame, way, first}){
+        super({type, url}).promise.then(() => {
             if(!this.isReady) return;
             this.frame = frame;
             this.way = way;
@@ -130,8 +131,8 @@ class Anime extends Sprite {
     }
 }
 class AnimeSplit extends Anime {
-    constructor({url, frame, way, width, height, index, first}){
-        super({url, frame, way, first}).promise.then(() => {
+    constructor({type, url, frame, way, width, height, index, first}){
+        super({type, url, frame, way, first}).promise.then(() => {
             if(!this.isReady) return;
             this.index = index;
             this.adjust(width, height);
