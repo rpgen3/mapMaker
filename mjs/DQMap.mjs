@@ -69,7 +69,7 @@ export class DQMap {
 const toArr = str => {
     const a = [];
     for(const line of str.split('\n')){
-        const m = line.match(/^[0-9A-Za-z]+:(?!\/\/)/)?.[0];
+        const m = line.match(/^.+?:(?!\/\/)/)?.[0];
         if(m) a.push([m.slice(0, -1), line.slice(m.length)]);
         else if(a.length) a[a.length - 1][1] += line;
     }
