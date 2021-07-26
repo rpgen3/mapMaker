@@ -195,7 +195,7 @@ const frame = new class {
     draw({ctx, x, y, z, _x, _y}){
         if(dqMap.isOut(x, y, z)) return;
         const key = dqMap.data[z][y][x];
-        dqMap.define.get(key).draw?.(ctx, _x, _y, key, input.y);
+        dqMap.define.get(key)?.draw(ctx, _x, _y, key, input.y);
     }
     _f(w, width){
         const pivot = w >> 1;
