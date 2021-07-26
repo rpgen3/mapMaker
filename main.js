@@ -1,388 +1,522 @@
-export {cv, dqMap, update, zMap, input, factory, unitSize, player, scale};
-const unitSize = 48,
-      input = {y: 6, z: 0, k: -1},
-      zMap = new Map;
-let g_debug;
-const {importAll} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
-const rpgen3 = await importAll([
-    'str2img',
-    'url'
-].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
-const loadImg = url => new Promise((resolve, reject) => {
-    const img = new Image;
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    const _url = url.includes('://') ? url : `https://i.imgur.com/${url}.png`;
-    if(rpgen3.getDomain(_url)[1] === 'imgur') img.crossOrigin = 'anonymous';
-    img.src = _url;
-});
-class Sprite {
-    constructor({url}){
-        this.url = url;
-        this.promise = loadImg(url).then(img => {
-            this.img = img;
-            this.adjust(img.width, img.height);
-            this.isReady = true;
-        });
-    }
-    adjust(width, height){ // 位置調整
-        [this.width, this.height] = [width, height];
-        let w, h, x, y;
-        if(width > unitSize && height > unitSize){
-            [w, h] = [width, height];
-            y = unitSize - height;
-            x = (unitSize - w) / 2;
+(async()=>{
+    const {importAll, getScript} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
+    await getScript('https://code.jquery.com/jquery-3.3.1.min.js');
+    const $ = window.$;
+    getScript('https://code.jquery.com/ui/1.12.1/jquery-ui.min.js');
+    const html = $('body').empty().css({
+        'text-align': 'center',
+        padding: '1em',
+        'user-select': 'none'
+    });
+    const holder = $('<div>').appendTo(html);
+    const rpgen3 = await importAll([
+        'css',
+        'hankaku',
+        'input',
+        'url',
+        'util',
+        'random'
+    ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
+    [
+        'table',
+        'plusBtn',
+        'layer',
+        'palette'
+    ].map(v => `https://rpgen3.github.io/mapMaker/css/${v}.css`).map(rpgen3.addCSS);
+    const rpgen5 = await importAll([
+        'main',
+        'Jsframe'
+    ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
+    const {
+        cv, dqMap, update, zMap, input, factory, unitSize, player, scale,
+        Jsframe
+    } = rpgen5;
+    const init = new class {
+        constructor(){
+            this.cv = $(cv.ctx.canvas);
+            $(this.cv).hide();
         }
-        else {
-            const f = (w, h) => [unitSize, unitSize * (h / w)];
-            if(width < height) {
-                [w, h] = f(width, height);
-                x = 0;
-                y = unitSize - h;
+        main(){
+            Win.deleteAll();
+            input.z = 0;
+            input.k = -1;
+            zMap.clear();
+            for(let i = 0; i < dqMap.info.depth; i++) zMap.set(i, true);
+            zMap.set('order', [...zMap.keys()]);
+            this.init();
+        }
+        init(){
+            if(this.flag) return;
+            this.flag = true;
+            holder.remove();
+            $(this.cv).show();
+            update();
+        }
+    };
+    $('<h1>').appendTo(holder).text('ドラクエ風マップ作成ツール');
+    $('<button>').appendTo(holder).text('新規作成').on('click', () => openWindowInit());
+    $('<button>').appendTo(holder).text('読み込み').on('click', () => openWindowImport());
+    const Win = new class {
+        constructor(){
+            this.m = new Map;
+            this.unit = 30;
+            this.cnt = 0;
+        }
+        make(ttl){
+            const {m} = this;
+            if(m.has(ttl)){
+                const win = m.get(ttl);
+                if(win.exist) {
+                    win.focus();
+                    return false;
+                }
             }
-            else {
-                [h, w] = f(height, width);
-                y = 0;
-                x = (unitSize - w) / 2;
+            const win = new rpgen5.Jsframe(ttl);
+            m.set(ttl, win.goto(...this._xy(win)));
+            return win;
+        }
+        _xy(win){
+            const {w, h} = win;
+            let now = ++this.cnt * this.unit;
+            if(now > Math.min($(window).width() - w, $(window).height() - h)) {
+                this.cnt = 0;
+                return this._xy(win);
+            }
+            return [...new Array(2)].map(v => rpgen3.randInt(-5, 5) + now);
+        }
+        deleteAll(){
+            for(const [k,v] of this.m) v.delete();
+        }
+    };
+    const toInt = str => Number(rpgen3.toHan(String(str)).match(/[0-9]+/)?.[0]) || 0,
+          promiseBtn = (elm, ttl) => new Promise(resolve => $('<button>').appendTo(elm).text(ttl).on('click', resolve));
+    const openWindowInit = async () => {
+        const win = Win.make('パラメータを設定して初期化');
+        if(!win) return;
+        const {elm} = win;
+        const w = rpgen3.addInputStr(elm,{
+            label: 'width',
+            value: 50,
+            save: true
+        });
+        const h = rpgen3.addInputStr(elm,{
+            label: 'height',
+            value: 50,
+            save: true
+        });
+        const d = rpgen3.addInputStr(elm,{
+            label: 'depth',
+            value: 3,
+            save: true
+        });
+        await promiseBtn(elm, 'マップを新規作成');
+        dqMap.set(...[w, h, d].map(toInt)).init();
+        init.main();
+        win.delete();
+    };
+    const openWindowImport = async () => {
+        const win = Win.make('作業ファイルを読み込む');
+        if(!win) return;
+        const {elm} = win;
+        $('<input>').appendTo(elm).prop({
+            type: 'file',
+            accept: '.txt'
+        }).on('change', async ({target}) => {
+            loadFile(await target.files[0].text());
+            win.delete();
+        });
+        const inputText = rpgen3.addInputStr(elm,{
+            label: '入力欄から',
+            textarea: true
+        });
+        await promiseBtn(elm, '読み込む');
+        loadFile(inputText());
+        win.delete();
+    };
+    const loadFile = str => {
+        dqMap.input(str, factory);
+        init.main();
+    };
+    const openWindowExport = async () => {
+        const win = Win.make('現在の編集内容を書き出す');
+        if(!win) return;
+        const {elm} = win;
+        await promiseBtn(elm, '書き出し開始');
+        const isNoSpace = rpgen3.addInputBool(elm,{
+            label: '半角スペースを削除する',
+            save: true
+        });
+        const str = dqMap.output(zMap.get('order')),
+              f = str => isNoSpace() ? str.replace(/ /g,'') : str;
+        $('<button>').appendTo(elm).text('クリップボードにコピー').on('click', () => rpgen3.copy(f(str)));
+        $('<button>').appendTo(elm).text('txtファイルとして保存').on('click', () => makeTextFile('mapMaker', f(str)));
+    };
+    const makeTextFile = (ttl, str) => $('<a>').prop({
+        download: ttl + '.txt',
+        href: URL.createObjectURL(new Blob([str], {
+            type: 'text/plain'
+        }))
+    }).get(0).click();
+    const openWindowDefine = async () => {
+        const win = Win.make('定義リスト');
+        if(!win) return;
+        const {elm} = win,
+              table = $('<table>').appendTo(elm),
+              thead = $('<thead>').appendTo(table),
+              tr = $('<tr>').appendTo(thead);
+        for(const str of [
+            'id', 'img', 'delete'
+        ]) $('<th>').appendTo(tr).text(str);
+        const tbody = $('<tbody>').appendTo(table);
+        $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => openWindowSelect(tbody));
+        for(const obj of dqMap.define) await addTr(tbody, obj);
+    };
+    const openWindowSelect = async tbody => {
+        const win = Win.make('追加する素材のタイプを選択');
+        if(!win) return;
+        const {elm} = win;
+        for(const [i,v] of tipType.entries()) $('<button>').appendTo(elm).text(v).on('click', () => openWindowInputURL(tbody, i));
+    };
+    const tipType = (()=>{
+        const a = ['単体', '複数'],
+              b = ['マップチップ', '歩行グラ'];
+        return [...new Array(4)].map((v,i) => `${a[i % 2]}の${b[i >> 1]}`);
+    })();
+    const openWindowInputURL = async (tbody, type) => {
+        const win = Win.make('定義を新規追加');
+        if(!win) return;
+        const {elm} = win,
+              isSplit = type % 2 === 1,
+              isAnime = type > 1;
+        let inputframe, inputWay, inputWidth, inputHeight;
+        if(isAnime){
+            const inputTemplate = rpgen3.addSelect(elm,{
+                label: 'テンプレ入力',
+                value: 'ここから選択',
+                list: {
+                    'ここから選択': null,
+                    'RPGEN': [[2, 'wdsa'], [16, 16]],
+                    'ツクール2000': [[3, 'wdsa'], [24, 32]],
+                    'ツクールXP': [[4, 'sadw'], [32, 48]],
+                    'ツクールVX': [[3, 'sadw'], [32, 32]],
+                    'ツクールMV': [[3, 'sadw'], [48, 48]],
+                }
+            });
+            inputTemplate.elm.on('change', () => {
+                if(!inputTemplate()) return;
+                const [[frame, way], [width, height]] = inputTemplate();
+                inputframe(frame);
+                inputWay(way);
+                if(isSplit){
+                    inputWidth(width);
+                    inputHeight(height);
+                }
+            });
+            inputframe = rpgen3.addInputStr(elm,{
+                label: 'フレーム数',
+                value: 3,
+                save: true
+            });
+            $('<div>').appendTo(elm).text('wasd: ↑←↓→');
+            inputWay = rpgen3.addInputStr(elm,{
+                label: '方向の定義',
+                value: 'sadw',
+                save: true
+            });
+        }
+        if(isSplit){
+            inputWidth = rpgen3.addInputStr(elm,{
+                label: '幅',
+                value: 16,
+                save: true
+            });
+            inputHeight = rpgen3.addInputStr(elm,{
+                label: '高さ',
+                value: 16,
+                save: true
+            });
+        }
+        const inputURL = rpgen3.addInputStr(elm,{
+            label: 'URLの入力欄'
+        });
+        inputURL.elm.focus();
+        await promiseBtn(elm, '決定');
+        $(elm).text('入力値が正しいか判定中');
+        const url = rpgen3.findURL(inputURL())[0];
+        if(!url) return;
+        const {next} = dqMap,
+              obj = {type, url};
+        if(isAnime){
+            const f = toInt(inputframe),
+                  w = inputWay();
+            if(!f) throw 'フレーム数の値が不正です';
+            if(!/[wasd]/.test(w)) throw '方向の定義の値が不正です';
+            obj.frame = f;
+            obj.way = w;
+        }
+        if(isSplit){
+            const w = toInt(inputWidth),
+                  h = toInt(inputHeight);
+            if(!w || !h) throw '幅・高さの値が0です';
+            obj.width = w;
+            obj.height = h;
+        }
+        $(elm).text('登録処理を実行中');
+        await factory(obj).promise;
+        if(type === 1 || type === 3) obj.index = [...obj.indexToXY.keys()];
+        obj.first = next;
+        const {index, way} = this,
+              _i = index?.length,
+              _w = way?.length;
+        obj.last = obj.first - 1 + [1, _i, _w, _i * _w][type];
+        dqMap.setDefine(obj);
+        await Promise.all([
+            addTr(tbody, obj),
+            addPalette(obj)
+        ]);
+        win.delete();
+    };
+    const addTr = async (tbody, obj) => {
+        const {type, first} = obj;
+        if(type === 1 || type === 3){
+            const {index} = obj;
+            const add = (key, ttl, func) => makeTr(ttl, () => {
+                const idx = index.indexOf(key);
+                if(idx !== -1) index.splice(idx, 1);
+                func();
+            }, obj, key).appendTo(tbody);
+            for(const i of obj.index) {
+                if(type === 1){
+                    const k = first + i;
+                    add(k, k, () => deleteKey(k));
+                }
+                else {
+                    const {length} = obj.way,
+                          k = first + i * length;
+                    add(k, `${k}~${k + length - 1}`, () => {
+                        for(let i = 0; i < length; i++) deleteKey(k + i);
+                    });
+                }
+                await sleep(10);
             }
         }
-        [this.w, this.h, this.x, this.y] = [w, h, x, y].map(Math.floor);
-    }
-    draw(ctx, x, y){
-        if(!this.isReady) return s404.draw(ctx, x, y);
-        const {img, w, h} = this;
-        ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
-    }
-}
-const s404 = new Sprite({url: 'aY2ef1p'});
-await s404.promise;
-class SpriteSplit extends Sprite {
-    constructor({url, width, height}){
-        super({url}).promise.then(() => {
-            if(!this.isReady) return;
-            this.adjust(width, height);
-            this.indexToXY = SpriteSplit.split(this.img, width, height);
+        else makeTr(first, () => deleteKey(obj), obj).appendTo(tbody);
+    };
+    const deleteKey = key => {
+        dqMap.define.delete(key);
+        $('.' + paletteKeyClass(key)).remove();
+    };
+    const makeTr = (ttl, remove, obj, key) => {
+        const tr = $('<tr>');
+        $('<th>').appendTo(tr).text(ttl);
+        $('<td>').appendTo(tr).append(makeCanvas(obj, key));
+        $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
+            tr.remove();
+            remove();
         });
-    }
-    static split(img, w, h){
-        const {width, height} = img,
-              maxX = width / w,
-              maxY = height / h,
-              a = [];
-        for(let i = 0; i < maxY; i++) for(let j = 0; j < maxX; j++) a.push([j, i]);
-        return a;
-    }
-    draw(ctx, x, y, key){
-        if(!this.isReady) return s404.draw(ctx, x, y);
-        const index = key - this.first;
-        if(!this.index.includes(index)) return s404.draw(ctx, x, y);
-        const [_x, _y] = this.indexToXY[index],
-              {img, width, height, w, h} = this;
-        ctx.drawImage(
-            img, _x * width, _y * height, width, height,
-            this.x + x * unitSize, this.y + y * unitSize, w, h
-        );
-    }
-}
-class Anime extends Sprite {
-    constructor({url, frame, way}){
-        super({url}).promise.then(() => {
-            if(!this.isReady) return;
-            this.frame = frame;
-            this.way = way;
-            const w = this.img.width / frame | 0,
-                  h = this.img.height / way.length | 0;
-            this.adjust(w, h);
-            this.anime = 1200;
-            this.stop(false);
-            if(frame === 3) this.goAndBack = true;
+        return tr;
+    };
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const makeCanvas = (obj, key) => {
+        const cv = $('<canvas>').prop({width: unitSize, height: unitSize}),
+              ctx = cv.get(0).getContext('2d');
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = false;
+        obj.draw(ctx, 0, 0, key);
+        return cv;
+    };
+    const openWindowLayer = () => {
+        const win = Win.make('レイヤー操作');
+        if(!win) return;
+        const {elm} = win,
+              table = $('<table>').appendTo(elm);
+        const tbody = $('<tbody>').appendTo(table).sortable({
+            opacity: 0.6,
+            placeholder: 'drag',
+            axis: 'y'
+        }).on('sortstop',()=>{
+            const arr = [];
+            tbody.children().each((i,e)=>arr.push(Number($(e).prop('z'))));
+            zMap.set('order', arr);
         });
-    }
-    stop(bool = true){
-        this._stop = bool ? true : this.frame < 2;
-    }
-    calcFrame(){
-        if(this._stop) return 0;
-        const {frame, anime} = this;
-        let now = g_nowTime % anime;
-        if(this.goAndBack){
-            const half = anime / 2;
-            now = (half - Math.abs(now - half)) * 2;
-        }
-        return now / anime * frame | 0;
-    }
-    draw(ctx, x, y, key, diff = 0){
-        if(!this.isReady) return s404.draw(ctx, x, y);
-        const {img, width, height, w, h} = this,
-              _x = width * this.calcFrame(),
-              _y = height * (key - this.first);
-        ctx.drawImage(
-            img, _x, _y, width, height,
-            this.x + x * unitSize, this.y + y * unitSize - diff, w, h
-        );
-    }
-    getKey(way = this.way[0]){ // 引数の方向になったキーを返す
-        const idx = this.way.indexOf(way);
-        return idx === -1 ? null : idx + this.first;
-    }
-}
-class AnimeSplit extends Anime {
-    constructor({url, frame, way, width, height}){
-        super({url, frame, way}).promise.then(() => {
-            if(!this.isReady) return;
-            this.adjust(width, height);
-            this.indexToXY = SpriteSplit.split(this.img, width * frame, height * way.length);
+        for(const z of zMap.keys()) if(!isNaN(z)) addTrLayer(z).appendTo(tbody);
+        $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => {
+            dqMap.data.push(dqMap.make());
+            const z = dqMap.info.depth++;
+            zMap.set(z, true).get('order').push(z);
+            addTrLayer(z).appendTo(tbody);
         });
-    }
-    draw(ctx, x, y, key, diff = 0){
-        if(!this.isReady) return s404.draw(ctx, x, y);
-        const index = this.getIndex(key);
-        if(!this.index.includes(index)) return s404.draw(ctx, x, y);
-        const [_x, _y] = this.indexToXY[index],
-              {img, width, height, w, h, first} = this,
-              _xx = width * (_x * this.frame + this.calcFrame()),
-              {length} = this.way,
-              _yy = height * (_y * length + (key - first) % length);
-        ctx.drawImage(
-            img,
-            _xx, _yy, width, height,
-            this.x + x * unitSize, this.y + y * unitSize - diff, w, h
-        );
-    }
-    getKey(way, key){ // 引数の方向になったキーを返す
-        const res = super.getKey(way);
-        return res === -1 ? null : res + this.getIndex(key) * this.way.length;
-    }
-    getIndex(key){ // キーの値から所属番号を取得
-        const {way, first} = this;
-        return (key - first) / way.length | 0;
-    }
-}
-const factory = v => Object.assign(new [Sprite, SpriteSplit, Anime, AnimeSplit][v.type](v), v);
-const frame = new class {
-    constructor(){
-        this.x = this.y = this._x = this._y = 0;
-    }
-    set(w, h){
-        this.w = w | 0;
-        this.h = h | 0;
-        return this;
-    }
-    update(ctx){
-        if(!dqMap.data) return;
-        const {w, h} = this,
-              {width, height} = dqMap.info;
-        [this.x, this._x] = this._switchF(player.nowX, w, width, player.x);
-        [this.y, this._y] = this._switchF(player.nowY, h, height, player.y);
-        const {x, y, _x, _y} = this,
-              w2 = w + 2,
-              h2 = h + 2,
-              zArr = zMap.get('order').filter(v => zMap.get(v));
-        for(const z of zArr) for(let j = -1; j < h2; j++) for(let k = -1; k < w2; k++) this.draw({
-            ctx,
-            x: k + x,
-            y: j + y,
-            z,
-            _x: k + _x,
-            _y: j + _y
+    };
+    const activeClassL = 'activeLayer';
+    const addTrLayer = z => {
+        const tr = $('<tr>').prop({z}).on('click',()=>{
+            $('.' + activeClassL).removeClass(activeClassL);
+            tr.addClass(activeClassL);
+            input.z = z;
         });
-    }
-    draw({ctx, x, y, z, _x, _y}){
-        if(dqMap.isOut(x, y, z)) return;
-        const key = dqMap.data[z][y][x];
-        dqMap.define.get(key)?.draw(ctx, _x, _y, key, input.y);
-    }
-    _f(w, width){
-        const pivot = w >> 1;
-        return [pivot, width - pivot - 1];
-    }
-    _get3state(x, pivot, max){
-        return max < pivot || x <= pivot ? -1 : x < max ? 0 : 1;
-    }
-    _switchF(x, w, width, next){
-        const [pivot, max] = this._f(w, width);
-        switch(this._get3state(x, pivot, max)){
-            case -1: return [0, 0];
-            case 0: {
-                const v = next - x;
-                return [x - pivot | 0, v === -1 ? 0 : v > 0 ? v - 1 : v];
-            }
-            case 1: return [max - pivot, 0];
-        }
-    }
-    _switchP(x, w, width){
-        const [pivot, max] = this._f(w, width);
-        switch(this._get3state(x, pivot, max)){
-            case -1: return x;
-            case 0: return pivot;
-            case 1: return x - (max - pivot);
-        }
-    }
-    calcPlayerXY(x, y){
-        const {w, h} = this,
-              {width, height} = dqMap.info;
-        return [
-            this._switchP(x, w, width),
-            this._switchP(y, h, height)
-        ];
-    }
-};
-const player = new class {
-    constructor(){
-        this.x = this.y = this._x = this._y = this.nowX = this.nowY = 0;
-        this.times = [200, 100, 50];
-        this.timeIdx = 0;
-        this.lastTime = 0;
-        this._time = null;
-        this.default = this.costume = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa'});
-        this.default.first = 0;
-        this.default.promise.then(() => {
-            this.key = this.default.getKey('s');
+        if(input.z === z) tr.addClass(activeClassL);
+        $('<th>').appendTo(tr).text(`レイヤー${z}`);
+        $('<button>').appendTo($('<td>').appendTo(tr)).text('非表示').on('click',()=>{
+            tr.toggleClass('off');
+            zMap.set(z, !zMap.get(z));
         });
-    }
-    set(way){
-        const {type} = this.costume;
-        if(type === 2 || type === 3) this.key = this.costume.getKey(way, this.key);
-        return this;
-    }
-    update(ctx){
-        const {x, y, _x, _y, time, _time} = this;
-        if(isKeyDown(['z'])) this.put(input.k);
-        else if(isKeyDown(['x'])) this.put();
-        else if(isKeyDown(['f'])) this.speedUp();
-        let rate = 0;
-        if(!this._time){
-            if(isKeyDown(['ArrowLeft'])) this.set('a').move(-1, 0);
-            else if(isKeyDown(['ArrowRight'])) this.set('d').move(1, 0);
-            else if(isKeyDown(['ArrowUp'])) this.set('w').move(0, -1);
-            else if(isKeyDown(['ArrowDown'])) this.set('s').move(0, 1);
-        }
-        else {
-            rate = 1 - (g_nowTime - _time) / this.times[this.timeIdx];
-            if(rate <= 0) {
-                rate = 0;
-                this._time = null;
+        if(!zMap.get(z)) tr.addClass('off');
+        $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
+            zMap.delete(z);
+            const arr = zMap.get('order'),
+                  idx = arr.indexOf(z);
+            if(z !== -1) arr.splice(idx);
+            tr.remove();
+        });
+        return tr;
+    };
+    const paletteClass = type => `palletClass${type}`,
+          paletteKeyClass = key => `palletKeyClass${key}`,
+          paletteHolderId = 'palletHolderId',
+          paletteTitle = 'パレット選択';
+    let nowType = 0, nowWay = 's';
+    const openWindowPalette = async () => {
+        const win = Win.make(paletteTitle);
+        if(!win) return;
+        const {elm} = win;
+        const selectType = rpgen3.addSelect(elm, {
+            label: '表示するもの',
+            list: tipType.map((v, i) => [v, i]),
+            value: nowType
+        });
+        selectType.elm.on('change', () => {
+            nowType = selectType();
+            holder.children().hide();
+            holder.find('.' + paletteClass(nowType)).show();
+            hWay[nowType === 2 || nowType === 3 ? 'show' : 'hide']();
+        });
+        const hWay = $('<div>').appendTo(elm);
+        const inputWay = rpgen3.addSelect(hWay, {
+            label: '人物の向き',
+            list: {
+                '↑': 'w',
+                '←': 'a',
+                '↓': 's',
+                '→': 'd'
+            },
+            value: '↓',
+            save: true
+        });
+        inputWay.elm.on('change', () => {
+            nowWay = inputWay();
+            const {k} = input,
+                  _k = dqMap.define.get(k)?.getKey(nowWay, k);
+            if(_k || _k === 0) input.k = _k;
+        }).trigger('change');
+        const holder = $('<div>').appendTo(elm).prop('id', paletteHolderId);
+        selectType.elm.trigger('change');
+        for(const obj of dqMap.define) await addPalette(obj);
+    };
+    const addPalette = async obj => {
+        const win = Win.m.get(paletteTitle);
+        if(!win) return;
+        const elm = $('#' + paletteHolderId),
+              {type, first} = obj;
+        if(type === 1 || type === 3) {
+            for(const i of obj.index) {
+                if(type === 1){
+                    const k = first + i;
+                    makePalette(obj, k).appendTo(elm);
+                }
+                else {
+                    const {length} = obj.way,
+                          k = first + i * length;
+                    makePalette(obj, obj.getKey('s', k)).appendTo(elm);
+                }
+                await sleep(10);
             }
         }
-        this.nowX = x - (x - _x) * rate;
-        this.nowY = y - (y - _y) * rate;
-    }
-    dressUp(key){
-        [this.costume, this.key] = dqMap.define.has(key) ? [
-            dqMap.define.get(key), key
-        ] : [
-            this.default, 0
-        ];
-    }
-    draw(ctx){
-        const {nowX, nowY} = this;
-        this.costume.draw?.(ctx, ...frame.calcPlayerXY(nowX, nowY), this.key, input.y);
-    }
-    goto(x, y){
-        const {width, height} = dqMap.info;
-        this.x = x < 0 ? 0 : x >= width ? width - 1 : x;
-        this.y = y < 0 ? 0 : y >= height ? height - 1 : y;
-    }
-    move(x, y){
-        if(this._time) return;
-        this._time = g_nowTime;
-        this._x = this.x;
-        this._y = this.y;
-        this.goto(this.x + x, this.y + y);
-    }
-    speedUp(){
-        if(g_nowTime - this.lastTime < 300) return;
-        this.lastTime = g_nowTime;
-        this.timeIdx = (this.timeIdx + 1) % this.times.length;
-        this.default.anime = this.times[this.timeIdx] * 6;
-    }
-    put(v){
-        const {z} = input;
-        if(!zMap.get(z)) return;
-        const {x, y} = this;
-        dqMap.put(x, y, z, v);
-    }
-};
-const rpgen4 = await importAll([
-    'isKeyDown',
-    'Canvas',
-    'layer'
-].map(v => `https://rpgen3.github.io/game/export/${v}.mjs`));
-const {isKeyDown, layer} = rpgen4,
-      cv = new rpgen4.Canvas(document.body).set(0.9, 0.9);
-const rpgen5 = await importAll([
-    'DQMap'
-].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
-const dqMap = new rpgen5.DQMap();
-layer.set(player);
-layer.set(frame.set(cv.w / unitSize, cv.h / unitSize));
-layer.set({update: ctx => player.draw(ctx)});
-let g_nowTime;
-const update = () => {
-    g_nowTime = performance.now();
-    const {ctx, w, h} = cv;
-    ctx.clearRect(0, 0, w, h);
-    layer.forEach(v => v.update(ctx));
-    requestAnimationFrame(update);
-};
-const scale = {
-    update(ctx){
-        if(this.hide) return;
-        const {w, h, _x, _y} = frame,
-              max = Math.max(w, h),
-              _w = w * unitSize,
-              _h = h * unitSize,
-              x = _x * unitSize,
-              y = _y * unitSize;
-        ctx.beginPath();
-        for(let i = -1; i <= max; i++){
-            const _i = i * unitSize,
-                  a = _i + x,
-                  b = _i + y;
-            if(i < w + 1) ctx.moveTo(a, 0), ctx.lineTo(a, _h);
-            if(i < h + 1) ctx.moveTo(0, b), ctx.lineTo(_w, b);
+        else makePalette(obj, obj.getKey?.('s')).appendTo(elm);
+    };
+    const activeClassP = 'activePalette';
+    const makePalette = (obj, key) => {
+        const {type} = obj;
+        const cv = makeCanvas(obj, key).on('click', () => {
+            const flag = cv.hasClass(activeClassP);
+            input.k = -1;
+            $('.' + activeClassP).removeClass(activeClassP);
+            if(!flag){
+                cv.addClass(activeClassP);
+                input.k = type === 2 || type === 3 ? obj.getKey(nowWay, key) : key;
+            }
+        }).addClass(paletteClass(type)).addClass(paletteKeyClass(key));
+        if(type === 2 || type === 3) {
+            const {length} = obj.way;
+            for(let i = 1; i < length; i++) cv.addClass(paletteKeyClass(key + i));
+            if(input.k >= key && input.k < key + length) cv.addClass(activeClassP);
         }
-        ctx.stroke();
-    }
-};
-layer.set(scale);
-class SimpleText {
-    constructor({text = '', color = 'black', size = 16}){
-        this.x = this.y = 0;
-        this.text = text;
-        this.color = color;
-        this.size = size;
-        layer.set(this);
-    }
-    update(ctx){
-        const {x, y, text, color, size} = this;
-        ctx.fillStyle = color;
-        ctx.font = `bold ${size}px 'MS ゴシック'`;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.fillText(text, x, y);
-    }
-    goto(x, y){
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-}
-const setText = new class {
-    constructor(){
-        this.cnt = 0;
-        this.size = unitSize / 3;
-    }
-    main(toString){
-        return new SimpleText({
-            text: {toString},
-            size: this.size,
-            color: 'blue'
-        }).goto(0, cv.h - this.size * 1.5 * ++this.cnt | 0);
-    }
-};
-setText.main(() => `座標(${player.x},${player.y})`);
-setText.main(() => `[F]${player.times[0] / player.times[player.timeIdx]}倍速`);
-setText.main(() => `[Z]設置 [X]削除`);
-setText.main(() => `[M]メニューを開く`);
-setText.main(() => g_debug);
+        else if(input.k === key) cv.addClass(activeClassP);
+        if(obj.type === nowType) cv.show();
+        else cv.hide();
+        return cv;
+    };
+    const openWindowConfig = () => {
+        const win = Win.make('設定');
+        if(!win) return;
+        const {elm} = win,
+              half = unitSize / 2 | 0;
+        const inputY = rpgen3.addInputNum(elm,{
+            label: '歩行グラずらし度',
+            value: input.y,
+            min: -half,
+            max: half
+        });
+        inputY.elm.on('input', v => {
+            input.y = inputY();
+        });
+        [
+            ['goto', {
+                label: '座標移動',
+                value: `${player.x}, ${player.y}`
+            }],
+            ['dressUp', {
+                label: '着替える',
+                save: true
+            }]
+        ].map(([func, param]) => {
+            const input = rpgen3.addInputStr(elm, param);
+            input.elm.on('change',()=>{
+                const m = input().match(/[0-9]+/g);
+                if(!m) return;
+                player[func](...m.map(Number));
+            });
+        });
+        $('<button>').appendTo(elm).text('デフォルト衣装').on('click', () => player.dressUp());
+        const hideLine = rpgen3.addInputBool(elm,{
+            label: '目盛りを消す'
+        });
+        hideLine.elm.on('change',() => {
+            scale.hide = hideLine();
+        });
+    };
+    const openWindowAll = () =>{
+        const win = Win.make('コマンド一覧');
+        if(!win) return;
+        const {elm} = win;
+        [
+            [openWindowDefine, '[K]定義リスト'],
+            [openWindowLayer, '[L]レイヤー操作'],
+            [openWindowPalette, '[P]パレット選択'],
+            [openWindowInit, '初期化'],
+            [openWindowImport, '読み込み'],
+            [openWindowExport, '書き出し'],
+            [openWindowConfig, '設定']
+        ].map(([func, ttl]) => $('<button>').appendTo(elm).text(ttl).on('click', func));
+    };
+    $(window).on('keydown',({key})=>{
+        if(!init.flag) return;
+        switch(key){
+            case 'm': return openWindowAll();
+            case 'k': return openWindowDefine();
+            case 'l': return openWindowLayer();
+            case 'p': return openWindowPalette();
+        }
+    });
+})();
