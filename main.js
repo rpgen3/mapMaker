@@ -297,7 +297,7 @@
         }
         else {
             makeTr(
-                obj, null, s,
+                obj, first, s,
                 type === 2 ? `${first}~${first + obj.way.length - 1}` : first
             ).appendTo(tbody);
         }
