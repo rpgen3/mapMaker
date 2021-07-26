@@ -234,8 +234,7 @@ const player = new class {
         this.timeIdx = 0;
         this.lastTime = 0;
         this._time = null;
-        this.default = this.costume = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa'});
-        this.default.first = 0;
+        this.default = this.costume = Object.assign(new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa'}), {type: 2, first: 0});
         this.default.promise.then(() => {
             this.key = this.default.getKey('s');
         });
