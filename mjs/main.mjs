@@ -246,7 +246,7 @@ const player = new class {
     }
     set(way){
         const {type} = this.costume;
-        if(type === 2 || type === 3) this.key = this.getKey(way, this.key);
+        if(type === 2 || type === 3) this.key = this.costume.getKey(way, this.key);
         return this;
     }
     update(ctx){
