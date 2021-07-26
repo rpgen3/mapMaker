@@ -194,9 +194,8 @@ const frame = new class {
     }
     draw({ctx, x, y, z, _x, _y}){
         if(dqMap.isOut(x, y, z)) return;
-        const key = data[z][y][x];
-        if(!dqMap.define.has(key)) return;
-        dqMap.define.get(key)?.obj.draw(ctx, _x, _y, key, input.y);
+        const key = dqMap.data[z][y][x];
+        dqMap.define.get(key).draw?.(ctx, _x, _y, key, input.y);
     }
     _f(w, width){
         const pivot = w >> 1;
@@ -271,14 +270,15 @@ const player = new class {
         this.nowY = y - (y - _y) * rate;
     }
     dressUp(key){
-        if(!dqMap.define.has(key)) return (this.costume = this.default);
-        this.costume = dqMap.define.get(key).obj;
-        this.key = key;
+        [this.costume, this.key] = dqMap.define.has(key) ? [
+            dqMap.define.get(key), key
+        ] : [
+            this.default, 0
+        ];
     }
     draw(ctx){
-        const {nowX, nowY, way, index} = this;
-        if(!this.costume) this.costume = this.default;
-        this.costume.draw(ctx, ...frame.calcPlayerXY(nowX, nowY), this.key, input.y);
+        const {nowX, nowY} = this;
+        this.costume.draw?.(ctx, ...frame.calcPlayerXY(nowX, nowY), this.key, input.y);
     }
     goto(x, y){
         const {width, height} = dqMap.info;
