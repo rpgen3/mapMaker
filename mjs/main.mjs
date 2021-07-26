@@ -55,7 +55,7 @@ class Sprite {
         ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
     }
 }
-const s404 = new Sprite({url: 'aY2ef1p'});
+const s404 = new Sprite({type: 0, url: 'aY2ef1p'});
 await s404.promise;
 class SpriteSplit extends Sprite {
     constructor({type, url, width, height, index, first}){
@@ -79,7 +79,7 @@ class SpriteSplit extends Sprite {
         if(!this.isReady) return s404.draw(ctx, x, y);
         const index = key - this.first;
         if(!this.index.includes(index)) return s404.draw(ctx, x, y);
-        const [_x, _y] = this.indexToXY[index] || [0, 0],
+        const [_x, _y] = this.indexToXY[index],
               {img, width, height, w, h} = this;
         ctx.drawImage(
             img, _x * width, _y * height, width, height,
@@ -143,9 +143,8 @@ class AnimeSplit extends Anime {
         if(!this.isReady) return s404.draw(ctx, x, y);
         const index = this.getIndex(key);
         if(!this.index.includes(index)) return s404.draw(ctx, x, y);
-        const first = this.getFirst(key),
-              [_x, _y] = this.indexToXY[index] || [0, 0],
-              {img, width, height, w, h} = this,
+        const [_x, _y] = this.indexToXY[index],
+              {img, width, height, w, h, first} = this,
               _xx = width * (_x * this.frame + this.calcFrame()),
               {length} = this.way,
               _yy = height * (_y * length + (key - first) % length);
@@ -240,7 +239,7 @@ const player = new class {
         this.timeIdx = 0;
         this.lastTime = 0;
         this._time = null;
-        this.costume = this.default = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa', first: 0});
+        this.costume = this.default = new Anime({type: 2, url: 'fFrt63r', frame: 2, way: 'wdsa', first: 0});
         this.costume.promise.then(() => {
             this.key = this.costume.getKey('s');
         });
