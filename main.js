@@ -280,39 +280,62 @@
         const {type, first} = obj;
         if(type === 1 || type === 3){
             const {index} = obj;
-            const add = (key, ttl, func) => makeTr(ttl, () => {
-                const idx = index.indexOf(key);
-                if(idx !== -1) index.splice(idx, 1);
-                func();
-            }, obj, key).appendTo(tbody);
             for(const i of obj.index) {
                 if(type === 1){
                     const k = first + i;
-                    add(k, k, () => deleteKey(k));
+                    makeTr(obj, k, k);
                 }
                 else {
                     const {length} = obj.way,
                           k = first + i * length;
-                    add(k, `${k}~${k + length - 1}`, () => {
-                        for(let i = 0; i < length; i++) deleteKey(k + i);
-                    });
+                    makeTr(obj, k, `${k}~${k + length - 1}`);
                 }
                 await sleep(10);
             }
         }
-        else makeTr(first, () => deleteKey(obj), obj).appendTo(tbody);
+        else {
+            makeTr(
+                obj, first.getKey?.('s'),
+                type === 2 ? `${first}~${first + obj.way.length - 1}` : first
+            ).appendTo(tbody);
+        }
     };
-    const deleteKey = key => {
-        dqMap.define.delete(key);
+    const deleteKey = (obj, key) => {
+        const {type} = obj,
+              del = k => dqMap.define.delete(k),
+              dels = k => {
+                  for(let i = 0; i < obj.way.length; i++) del(k + i);
+              },
+              rm = i => {
+                  const {index} = obj,
+                        idx = index.indexOf(i);
+                  if(idx !== -1) index.splice(idx, 1);
+              };
+        switch(type){
+            case 0:
+                del(key);
+                break;
+            case 1:
+                del(key);
+                rm(key);
+                break;
+            case 2:
+                dels(key);
+                break;
+            case 3:
+                dels(key);
+                rm(key / obj.way.length);
+                break;
+        }
         $('.' + paletteKeyClass(key)).remove();
     };
-    const makeTr = (ttl, remove, obj, key) => {
+    const makeTr = (obj, key, ttl) => {
         const tr = $('<tr>');
         $('<th>').appendTo(tr).text(ttl);
         $('<td>').appendTo(tr).append(makeCanvas(obj, key));
         $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
             tr.remove();
-            remove();
+            deleteKey(obj, key);
         });
         return tr;
     };
