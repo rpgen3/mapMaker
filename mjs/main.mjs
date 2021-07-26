@@ -17,8 +17,7 @@ const loadImg = url => new Promise((resolve, reject) => {
     img.src = _url;
 });
 class Sprite {
-    constructor({type, url}){
-        this.type = type;
+    constructor({url}){
         this.url = url;
         this.promise = loadImg(url).then(img => {
             this.img = img;
@@ -55,14 +54,12 @@ class Sprite {
         ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
     }
 }
-const s404 = new Sprite({type: 0, url: 'aY2ef1p'});
+const s404 = new Sprite({url: 'aY2ef1p'});
 await s404.promise;
 class SpriteSplit extends Sprite {
-    constructor({type, url, width, height, index, first}){
-        super({type, url}).promise.then(() => {
+    constructor({url, width, height}){
+        super({url}).promise.then(() => {
             if(!this.isReady) return;
-            this.index = index;
-            this.first = first;
             this.adjust(width, height);
             this.indexToXY = SpriteSplit.split(this.img, width, height);
         });
@@ -88,12 +85,11 @@ class SpriteSplit extends Sprite {
     }
 }
 class Anime extends Sprite {
-    constructor({type, url, frame, way, first}){
-        super({type, url}).promise.then(() => {
+    constructor({url, frame, way}){
+        super({url}).promise.then(() => {
             if(!this.isReady) return;
             this.frame = frame;
             this.way = way;
-            this.first = first;
             const w = this.img.width / frame | 0,
                   h = this.img.height / way.length | 0;
             this.adjust(w, h);
@@ -131,10 +127,9 @@ class Anime extends Sprite {
     }
 }
 class AnimeSplit extends Anime {
-    constructor({type, url, frame, way, width, height, index, first}){
-        super({type, url, frame, way, first}).promise.then(() => {
+    constructor({url, frame, way, width, height}){
+        super({url, frame, way}).promise.then(() => {
             if(!this.isReady) return;
-            this.index = index;
             this.adjust(width, height);
             this.indexToXY = SpriteSplit.split(this.img, width * frame, height * way.length);
         });
@@ -163,7 +158,7 @@ class AnimeSplit extends Anime {
         return (key - first) / way.length | 0;
     }
 }
-const factory = v => new [Sprite, SpriteSplit, Anime, AnimeSplit][v.type](v);
+const factory = v => Object.assign(new [Sprite, SpriteSplit, Anime, AnimeSplit][v.type](v), v);
 const frame = new class {
     constructor(){
         this.x = this.y = this._x = this._y = 0;
@@ -239,9 +234,10 @@ const player = new class {
         this.timeIdx = 0;
         this.lastTime = 0;
         this._time = null;
-        this.costume = this.default = new Anime({type: 2, url: 'fFrt63r', frame: 2, way: 'wdsa', first: 0});
-        this.costume.promise.then(() => {
-            this.key = this.costume.getKey('s');
+        this.default = this.costume = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa'});
+        this.default.first = 0;
+        this.default.promise.then(() => {
+            this.key = this.default.getKey('s');
         });
     }
     set(way){
