@@ -241,7 +241,7 @@ const player = new class {
         this._time = null;
         this.costume = this.default = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa', first: 0});
         this.costume.promise.then(() => {
-            this.key = this.getKey('s');
+            this.key = this.costume.getKey('s');
         });
     }
     set(way){
