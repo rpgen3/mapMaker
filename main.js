@@ -506,7 +506,7 @@
             }]
         ].map(([func, param]) => {
             const input = rpgen3.addInputStr(elm, param);
-            input.elm.on('change',()=>{
+            input.elm.on('input',()=>{
                 player[func](...toInts(input()));
             });
         });
@@ -516,6 +516,13 @@
         });
         hideLine.elm.on('change',() => {
             scale.hide = hideLine();
+        });
+        $('<button>').appendTo(elm).text('マップ上の未定義の値を削除する').on('click', () => {
+            const {width, height, depth} = dqMap.info;
+            for(let x = 0; x < width; x++) for(let y = 0; y < height; y++) for(let z = 0; z < depth; z++) {
+                const v = dqMap.data[z][y][x];
+                if(v !== 1 && !dqMap.define.has(v)) dqMap.put(x, y, z);
+            }
         });
     };
     const openWindowAll = () =>{
