@@ -23,7 +23,7 @@ export class DQMap {
         return [...new Array(height)].map(() => [...new Array(width).fill(-1)]);
     }
     put(x, y, z, v = -1){
-        if(!this.isOut(x, y, z)) this.data[z][y][x] = v;
+        if(!this.isOut(x, y, z) && this.data[z][y][x] !== v) this.data[z][y][x] = v;
     }
     isOut(x, y, z){
         const {width, height, depth} = this.info;
