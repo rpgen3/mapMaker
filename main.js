@@ -54,7 +54,7 @@ class Sprite {
         ctx.drawImage(img, this.x + x * unitSize, this.y + y * unitSize, w, h);
     }
 }
-const s404 = new Sprite({type: 0, url: 'aY2ef1p'});
+const s404 = new Sprite({url: 'aY2ef1p'});
 await s404.promise;
 class SpriteSplit extends Sprite {
     constructor({url, width, height}){
@@ -234,9 +234,10 @@ const player = new class {
         this.timeIdx = 0;
         this.lastTime = 0;
         this._time = null;
-        this.costume = this.default = new Anime({type: 2, url: 'fFrt63r', frame: 2, way: 'wdsa', first: 0});
-        this.costume.promise.then(() => {
-            this.key = this.costume.getKey('s');
+        this.default = this.costume = new Anime({url: 'fFrt63r', frame: 2, way: 'wdsa'});
+        this.default.first = 0;
+        this.default.promise.then(() => {
+            this.key = this.default.getKey('s');
         });
     }
     set(way){
