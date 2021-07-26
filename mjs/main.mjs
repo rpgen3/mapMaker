@@ -277,7 +277,7 @@ const player = new class {
         const {nowX, nowY} = this;
         this.costume.draw?.(ctx, ...frame.calcPlayerXY(nowX, nowY), this.key, input.y);
     }
-    goto(x, y){
+    goto(x = 0, y = 0){
         const {width, height} = dqMap.info;
         this.x = x < 0 ? 0 : x >= width ? width - 1 : x;
         this.y = y < 0 ? 0 : y >= height ? height - 1 : y;
