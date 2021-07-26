@@ -264,7 +264,7 @@
         const _obj = factory(obj);
         await _obj.promise;
         if(type === 1 || type === 3) _obj.index = [..._obj.indexToXY.keys()];
-        _obj.first = dqMap.next | 0;
+        _obj.first = dqMap.max + 1;
         const {index, way} = _obj,
               _i = index?.length,
               _w = way?.length;
