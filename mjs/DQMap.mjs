@@ -29,12 +29,12 @@ export class DQMap {
         const {width, height, depth} = this.info;
         return x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth;
     }
-    get next(){
-        return Math.max(...this.define.keys(), -1) + 1;
+    get max(){
+        return Math.max(...this.define.keys(), -1);
     }
     get list(){
         const a = [],
-              last = this.next | 0;
+              last = this.max + 1;
         for(let i = 0; i < last; i++){
             const obj = this.define.get(i);
             if(obj) {
@@ -58,11 +58,11 @@ export class DQMap {
               {info, define, data} = this,
               ar = [
                   Object.entries(info),
-                  toStr(define)
+                  toStr(this.list)
               ].map(v => v.map(v => v.join(': ')).join('\n'));
         m.set('info', ar[0]);
         m.set('define', ar[1]);
-        m.set('data', stringify(data, zArr, (this.max - 1).toString().length));
+        m.set('data', stringify(data, zArr, this.max.toString().length));
         return [...m].map(([k,v]) => `#${k}\n${v}`).join('\n\n');
     }
 }
@@ -135,16 +135,13 @@ const parse = (str, that) => {
         }
     }
 };
-const toStr = map => {
-    const arr = [],
-          log = [];
-    for(const [k,v] of map) {
-        if(log.includes(v)) continue;
-        log.push(v);
+const toStr = list => {
+    const arr = [];
+    for(const v of list) {
         const a = o2a(v),
               {first, last} = v,
               _k = first < last && `${first}~${last}`;
-        if(a) arr.push([_k || k, a.join(', ')]);
+        if(a) arr.push([_k || first, a.join(', ')]);
     }
     return arr;
 };
@@ -167,7 +164,7 @@ const stringify = (data, zArr, max) => {
         for(const [j,y] of data[z].entries()) {
             const _x = [];
             for(const x of data[z][j]) {
-                const s = String(x);
+                const s = x === -1 ? '' : x.toString();
                 _x.push(' '.repeat(max - s.length) + s);
             }
             _y.push(_x.join(','));
