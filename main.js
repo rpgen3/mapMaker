@@ -169,7 +169,7 @@
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => openWindowSelect(tbody));
-        for(const obj of dqMap.define) await addTr(tbody, obj);
+        for(const v of dqMap.list) await addTr(tbody, v);
     };
     const openWindowSelect = async tbody => {
         const win = Win.make('追加する素材のタイプを選択');
@@ -244,8 +244,7 @@
         $(elm).text('入力値が正しいか判定中');
         const url = rpgen3.findURL(inputURL())[0];
         if(!url) return;
-        const {next} = dqMap,
-              obj = {type, url};
+        const obj = {type, url};
         if(isAnime){
             const f = toInt(inputframe),
                   w = inputWay();
@@ -262,17 +261,18 @@
             obj.height = h;
         }
         $(elm).text('登録処理を実行中');
-        await factory(obj).promise;
-        if(type === 1 || type === 3) obj.index = [...obj.indexToXY.keys()];
-        obj.first = next;
-        const {index, way} = this,
+        const _obj = factory(obj);
+        await _obj.promise;
+        if(type === 1 || type === 3) _obj.index = [..._obj.indexToXY.keys()];
+        _obj.first = dqMap.next | 0;
+        const {index, way} = _obj,
               _i = index?.length,
               _w = way?.length;
-        obj.last = obj.first - 1 + [1, _i, _w, _i * _w][type];
-        dqMap.setDefine(obj);
+        _obj.last = _obj.first - 1 + [1, _i, _w, _i * _w][type];
+        dqMap.setDefine(_obj);
         await Promise.all([
-            addTr(tbody, obj),
-            addPalette(obj)
+            addTr(tbody, _obj),
+            addPalette(_obj)
         ]);
         win.delete();
     };
@@ -384,7 +384,7 @@
         const selectType = rpgen3.addSelect(elm, {
             label: '表示するもの',
             list: tipType.map((v, i) => [v, i]),
-            value: nowType
+            save: true
         });
         selectType.elm.on('change', () => {
             nowType = selectType();
@@ -407,12 +407,12 @@
         inputWay.elm.on('change', () => {
             nowWay = inputWay();
             const {k} = input,
-                  _k = dqMap.define.get(k)?.getKey(nowWay, k);
+                  _k = dqMap.define.get(k)?.getKey?.(nowWay, k);
             if(_k || _k === 0) input.k = _k;
         }).trigger('change');
         const holder = $('<div>').appendTo(elm).prop('id', paletteHolderId);
         selectType.elm.trigger('change');
-        for(const obj of dqMap.define) await addPalette(obj);
+        for(const v of dqMap.list) await addPalette(v);
     };
     const addPalette = async obj => {
         const win = Win.m.get(paletteTitle);
@@ -436,7 +436,7 @@
         else makePalette(obj, obj.getKey?.('s')).appendTo(elm);
     };
     const activeClassP = 'activePalette';
-    const makePalette = (obj, key) => {
+    const makePalette = (obj, key = obj.first) => {
         const {type} = obj;
         const cv = makeCanvas(obj, key).on('click', () => {
             const flag = cv.hasClass(activeClassP);
