@@ -29,7 +29,7 @@
         'Jsframe'
     ].map(v => `https://rpgen3.github.io/mapMaker/mjs/${v}.mjs`));
     const {
-        cv, dqMap, update, zMap, input, dMap, unitSize, player, scale,
+        cv, dqMap, update, zMap, input, factory, unitSize, player, scale,
         Jsframe
     } = rpgen5;
     const init = new class {
@@ -40,7 +40,7 @@
         main(){
             Win.deleteAll();
             input.z = 0;
-            input.v.erase = true;
+            input.k = -1;
             zMap.clear();
             for(let i = 0; i < dqMap.info.depth; i++) zMap.set(i, true);
             zMap.set('order', [...zMap.keys()]);
@@ -135,10 +135,7 @@
         win.delete();
     };
     const loadFile = str => {
-        dqMap.input(str);
-        dMap.clear();
-        const {define} = dqMap;
-        for(const [k,v] of define) dMap.set(k, define.get(k));
+        dqMap.input(str, factory);
         init.main();
     };
     const openWindowExport = async () => {
@@ -171,30 +168,27 @@
         for(const str of [
             'id', 'imgurID', 'img', 'delete'
         ]) $('<th>').appendTo(tr).text(str);
-        const tbody = $('<tbody>').appendTo(table),
-              {define} = dqMap;
+        const tbody = $('<tbody>').appendTo(table);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => openWindowSelect(tbody));
-        for(const k of define.keys()) await addTr(tbody, k);
+        for(const obj of dqMap.define) await addTr(tbody, obj);
     };
     const openWindowSelect = async tbody => {
         const win = Win.make('追加する素材のタイプを選択');
         if(!win) return;
-        const {elm} = win,
-              addBtn = (ttl, isAnime, isSplit) => $('<button>').appendTo(elm).text(ttl).on('click', () => openWindowInputImgur(tbody, isAnime, isSplit));
-        addBtn(mapTipType[0]);
-        addBtn(mapTipType[1], true);
-        addBtn(mapTipType[2], false, true);
-        addBtn(mapTipType[3], true, true);
+        const {elm} = win;
+        for(const [i,v] of tipType.entries()) $('<button>').appendTo(elm).text(v).on('click', () => openWindowInputImgur(tbody, i));
     };
-    const mapTipType = (()=>{
+    const tipType = (()=>{
         const a = ['単体', '複数'],
               b = ['マップチップ', '歩行グラ'];
-        return [...new Array(4)].map((v,i) => `${a[i >> 1]}の${b[i % 2]}`);
+        return [...new Array(4)].map((v,i) => `${a[i % 2]}の${b[i >> 1]}`);
     })();
-    const openWindowInputImgur = async (tbody, isAnime, isSplit) => {
+    const openWindowInputImgur = async (tbody, type) => {
         const win = Win.make('imgurIDを新規追加');
         if(!win) return;
-        const {elm} = win;
+        const {elm} = win,
+              isSplit = type % 2 === 1,
+              isAnime = type > 1;
         let inputframe, inputWay, inputWidth, inputHeight;
         if(isAnime){
             const inputTemplate = rpgen3.addSelect(elm,{
@@ -274,51 +268,58 @@
                 if(!w || !h) throw '幅・高さの値が0です';
                 obj.width = w;
                 obj.height = h;
-                obj.index = [];
             }
             $(elm).text('登録処理を実行中');
-            const k = next + i;
-            await dMap.set(k, obj).promise;
-            if(isSplit){
-                const d = dMap.get(k),
-                      index = [...d.indexToXY.keys()];
-                d.index = obj.index = index;
-            }
-            dqMap.define.set(k, obj);
+            await factory(obj).promise;
+            if(type === 1 || type === 3) obj.index = [...obj.indexToXY.keys()];
+            obj.first = next + i;
+            const {index, way} = this,
+                  _i = index?.length,
+                  _w = way?.length;
+            obj.last = obj.first - 1 + [1, _i, _w, _i * _w][type];
+            dqMap.setDefine(obj);
             await Promise.all([
-                addTr(tbody, k),
-                addPalette(k)
+                addTr(tbody, obj),
+                addPalette(obj)
             ]);
             i++;
         }
         win.delete();
     };
-    const addTr = async (tbody, key) => {
-        const obj = dqMap.define.get(key),
-              {id, index} = obj;
-        if('index' in obj) {
-            for(const i of index) {
-                makeTr(`${key}-${i}`, id, makeCanvas(key, i), () => {
-                    const {index} = dqMap.define.get(key),
-                          idx = index.indexOf(i);
-                    if(idx !== -1) index.splice(idx, 1);
-                    if(!index.length) deleteKey(key);
-                }).appendTo(tbody);
+    const addTr = async (tbody, obj) => {
+        const {type, first} = obj;
+        if(type === 1 || type === 3){
+            const {index} = obj;
+            const add = (key, ttl, func) => makeTr(ttl, () => {
+                const idx = index.indexOf(key);
+                if(idx !== -1) index.splice(idx, 1);
+                func();
+            }, obj, key).appendTo(tbody);
+            for(const i of obj.index) {
+                if(type === 1){
+                    const k = first + i;
+                    add(k, k, () => deleteKey(k));
+                }
+                else {
+                    const {length} = obj.way,
+                          k = first + i * length;
+                    add(k, `${k}~${k + length - 1}`, () => {
+                        for(let i = 0; i < length; i++) deleteKey(k + i);
+                    });
+                }
                 await sleep(10);
             }
         }
-        else makeTr(key, id, makeCanvas(key, null), () => deleteKey(key)).appendTo(tbody);
+        else makeTr(first, () => deleteKey(obj), obj).appendTo(tbody);
     };
     const deleteKey = key => {
         dqMap.define.delete(key);
-        dMap.delete(key);
         $('.' + paletteKeyClass(key)).remove();
     };
-    const makeTr = (key, id, cv, remove) => {
+    const makeTr = (ttl, remove, obj, key) => {
         const tr = $('<tr>');
-        $('<th>').appendTo(tr).text(key);
-        $('<td>').appendTo(tr).text(id);
-        $('<td>').appendTo(tr).append(cv);
+        $('<th>').appendTo(tr).text(ttl);
+        $('<td>').appendTo(tr).append(makeCanvas(obj, key));
         $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',()=>{
             tr.remove();
             remove();
@@ -326,14 +327,14 @@
         return tr;
     };
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-    const makeCanvas = (key, index) => {
+    const makeCanvas = (obj, key) => {
         const cv = $('<canvas>').prop({width: unitSize, height: unitSize}),
               ctx = cv.get(0).getContext('2d');
         ctx.mozImageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
         ctx.msImageSmoothingEnabled = false;
         ctx.imageSmoothingEnabled = false;
-        dMap.get(key)?.draw(ctx, 0, 0, {index, way: 's'});
+        obj.draw(ctx, 0, 0, key);
         return cv;
     };
     const openWindowLayer = () => {
@@ -381,25 +382,25 @@
         });
         return tr;
     };
-    const paletteClass = tipType => `palletClass${tipType}`,
+    const paletteClass = type => `palletClass${type}`,
           paletteKeyClass = key => `palletKeyClass${key}`,
           paletteHolderId = 'palletHolderId',
           paletteTitle = 'パレット選択';
-    let selectTipType;
+    let nowType = 0, nowWay = 's';
     const openWindowPalette = async () => {
         const win = Win.make(paletteTitle);
         if(!win) return;
         const {elm} = win;
-        selectTipType = rpgen3.addSelect(elm, {
+        const selectType = rpgen3.addSelect(elm, {
             label: '表示するもの',
-            list: mapTipType.map((v, i) => [v, i]),
-            save: true
+            list: tipType.map((v, i) => [v, i]),
+            value: nowType
         });
-        selectTipType.elm.on('change', () => {
-            const tipType = selectTipType();
+        selectType.elm.on('change', () => {
+            nowType = selectType();
             holder.children().hide();
-            holder.find('.' + paletteClass(tipType)).show();
-            hWay[tipType % 2 ? 'show' : 'hide']();
+            holder.find('.' + paletteClass(nowType)).show();
+            hWay[nowType === 2 || nowType === 3 ? 'show' : 'hide']();
         });
         const hWay = $('<div>').appendTo(elm);
         const inputWay = rpgen3.addSelect(hWay, {
@@ -414,44 +415,55 @@
             save: true
         });
         inputWay.elm.on('change', () => {
-            if(!input.v) input.v = {};
-            input.v.way = inputWay();
+            nowWay = inputWay();
+            const {k} = input,
+                  _k = dqMap.define.get(k)?.getKey(nowWay, k);
+            if(_k || _k === 0) input.k = _k;
         }).trigger('change');
         const holder = $('<div>').appendTo(elm).prop('id', paletteHolderId);
-        selectTipType.elm.trigger('change');
-        for(const [k,v] of dqMap.define) await addPalette(k);
+        selectType.elm.trigger('change');
+        for(const obj of dqMap.define) await addPalette(obj);
     };
-    const addPalette = async key => {
+    const addPalette = async obj => {
         const win = Win.m.get(paletteTitle);
         if(!win) return;
         const elm = $('#' + paletteHolderId),
-              obj = dqMap.define.get(key),
-              isAnime = 'way' in obj,
-              isSplit = 'index' in obj;
-        if(isSplit) {
-            for(const index of obj.index) {
-                makePalette(isAnime, key, index).appendTo(elm);
+              {type, first} = obj;
+        if(type === 1 || type === 3) {
+            for(const i of obj.index) {
+                if(type === 1){
+                    const k = first + i;
+                    makePalette(obj, k).appendTo(elm);
+                }
+                else {
+                    const {length} = obj.way,
+                          k = first + i * length;
+                    makePalette(obj, obj.getKey('s', k)).appendTo(elm);
+                }
                 await sleep(10);
             }
         }
-        else makePalette(isAnime, key).appendTo(elm);
+        else makePalette(obj, obj.getKey?.('s')).appendTo(elm);
     };
     const activeClassP = 'activePalette';
-    const makePalette = (isAnime, key, index = null) => {
-        const isSplit = index !== null,
-              tipType = isSplit && isAnime ? 3 : isSplit ? 2 : isAnime ? 1 : 0;
-        const cv = makeCanvas(key, index).on('click', () => {
+    const makePalette = (obj, key) => {
+        const {type} = obj;
+        const cv = makeCanvas(obj, key).on('click', () => {
             const flag = cv.hasClass(activeClassP);
-            input.v.erase = flag;
+            input.k = -1;
             $('.' + activeClassP).removeClass(activeClassP);
             if(!flag){
                 cv.addClass(activeClassP);
-                input.v.key = key;
-                if(isSplit) input.v.index = index;
+                input.k = type === 2 || type === 3 ? obj.getKey(nowWay, key) : key;
             }
-        }).addClass(paletteClass(tipType)).addClass(paletteKeyClass(key));
-        if(!input.v.erase && input.v.key === key && (!isSplit || input.v.index === index)) cv.addClass(activeClassP);
-        if(tipType === selectTipType()) cv.show();
+        }).addClass(paletteClass(type)).addClass(paletteKeyClass(key));
+        if(type === 2 || type === 3) {
+            const {length} = obj.way;
+            for(let i = 1; i < length; i++) cv.addClass(paletteKeyClass(key + i));
+            if(input.k >= key && input.k < key + length) cv.addClass(activeClassP);
+        }
+        else if(input.k === key) cv.addClass(activeClassP);
+        if(obj.type === nowType) cv.show();
         else cv.hide();
         return cv;
     };
