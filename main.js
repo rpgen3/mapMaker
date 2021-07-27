@@ -111,7 +111,7 @@
             save: true
         });
         await promiseBtn(elm, 'マップを新規作成');
-        dqMap.set(...[w, h, d].map(toInt)).init();
+        dqMap.set(...[w, h, d].map(v => v()).map(toInt)).init();
         init.main();
         win.delete();
     };
@@ -247,7 +247,7 @@
         if(!url) return;
         const obj = {type, url};
         if(isAnime){
-            const f = toInt(inputframe),
+            const f = toInt(inputframe()),
                   w = inputWay();
             if(!f) throw 'フレーム数の値が不正です';
             if(!/[wasd]/.test(w)) throw '方向の定義の値が不正です';
@@ -255,8 +255,8 @@
             obj.way = w;
         }
         if(isSplit){
-            const w = toInt(inputWidth),
-                  h = toInt(inputHeight);
+            const w = toInt(inputWidth()),
+                  h = toInt(inputHeight());
             if(!w || !h) throw '幅・高さの値が0です';
             obj.width = w;
             obj.height = h;
@@ -506,7 +506,7 @@
             }]
         ].map(([func, param]) => {
             const input = rpgen3.addInputStr(elm, param);
-            input.elm.on('input',()=>{
+            input.elm.on('input',() => {
                 player[func](...toInts(input()));
             });
         });
