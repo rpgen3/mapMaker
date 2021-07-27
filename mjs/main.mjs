@@ -327,19 +327,18 @@ const update = () => {
 const scale = {
     update(ctx){
         if(this.hide) return;
-        const {w, h, _x, _y} = frame,
-              max = Math.max(w, h),
-              _w = w * unitSize,
-              _h = h * unitSize,
+        const {w, h} = cv,
+              {_x, _y} = frame,
               x = _x * unitSize,
-              y = _y * unitSize;
+              y = _y * unitSize,
+              max = Math.max(w, h);
         ctx.beginPath();
         for(let i = -1; i <= max; i++){
             const _i = i * unitSize,
                   a = _i + x,
                   b = _i + y;
-            if(i < w + 1) ctx.moveTo(a, 0), ctx.lineTo(a, _h);
-            if(i < h + 1) ctx.moveTo(0, b), ctx.lineTo(_w, b);
+            if(i <= w) ctx.moveTo(a, 0), ctx.lineTo(a, h);
+            if(i <= h) ctx.moveTo(0, b), ctx.lineTo(w, b);
         }
         ctx.stroke();
     }
