@@ -38,10 +38,11 @@
         }
         main(){
             Win.deleteAll();
-            input.z = 0;
+            const {depth} = dqMap.info;
+            input.z = depth - 1;
             input.k = -1;
             zMap.clear();
-            for(let i = 0; i < dqMap.info.depth; i++) zMap.set(i, true);
+            for(let i = 0; i < depth; i++) zMap.set(i, true);
             zMap.set('order', [...zMap.keys()]);
             this.init();
         }
@@ -370,7 +371,7 @@
             dqMap.data.push(dqMap.make());
             const z = dqMap.info.depth++;
             zMap.set(z, true).get('order').push(z);
-            addTrLayer(z).appendTo(tbody);
+            addTrLayer(z).appendTo(tbody).trigger('click');
         });
     };
     const activeClassL = 'activeLayer';
