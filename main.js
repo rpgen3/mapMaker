@@ -293,7 +293,7 @@
                           k = first + i * length;
                     makeTr(obj, k, s, `${k}~${k + length - 1}`).appendTo(tbody);
                 }
-                await sleep(50);
+                await sleep(10);
             }
         }
         else {
@@ -454,7 +454,7 @@
                           k = first + i * length;
                     makePalette(obj, obj.getKey('s', k)).appendTo(elm);
                 }
-                await sleep(50);
+                await sleep(10);
             }
         }
         else makePalette(obj, obj.getKey?.('s')).appendTo(elm);
