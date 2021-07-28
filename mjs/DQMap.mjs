@@ -2,6 +2,7 @@ export class DQMap {
     constructor(){
         this.info = {};
         this.define = new Map;
+        this.layer = new Map;
     }
     setDefine(v){
         for(let i = v.first; i <= v.last; i++) this.define.set(i, v);
@@ -16,6 +17,7 @@ export class DQMap {
     init(){
         const {depth} = this.info;
         this.data = [...new Array(depth)].map(() => this.make());
+        this.layer.clear();
         return this;
     }
     make(){
@@ -50,19 +52,18 @@ export class DQMap {
         this.info = toArr(info).reduce((p, [k, v]) => (p[k] = toInt(v), p), {});
         this.define = new Map;
         for(const v of toArr2(toArr(define))) this.setDefine(factory(v));
-        parse(data, this.init());
+        parse(this.init(), data);
         return this;
     }
     output(zArr = [...new Array(this.depth).keys()]){ // マップデータを文字列化
         const m = new Map,
-              {info, define, data} = this,
               ar = [
-                  Object.entries(info),
+                  Object.entries(this.info),
                   toStr(this.list)
               ].map(v => v.map(v => v.join(': ')).join('\n'));
         m.set('info', ar[0]);
         m.set('define', ar[1]);
-        m.set('data', stringify(data, zArr, this.max.toString().length));
+        m.set('data', stringify(this, zArr));
         return [...m].map(([k,v]) => `#${k}\n${v}`).join('\n\n');
     }
 }
@@ -121,11 +122,15 @@ const a2o = arg => {
 };
 const toInts = str => str?.match(/[0-9]+/g)?.map(Number),
       toInt = str => toInts(str)?.[0];
-const parse = (str, that) => {
+const parse = (that, str) => {
     for(const v of str.split('$')){
-        const z = toInt(v);
+        const lines = v.split('\n'),
+              top = lines.shift(),
+              z = toInt(top),
+              s = top.split(':')[1]?.trim();
+        if(s) that.layer.set(z, s);
         let y = 0;
-        for(const line of v.split('\n')){
+        for(const line of lines){
             if(!line.includes(',')) continue;
             for(const [x,e] of line.split(',').entries()){
                 const n = toInt(e);
@@ -157,19 +162,22 @@ const o2a = o => {
     if(type === 8) a.push(o.rgba);
     return a;
 };
-const stringify = (data, zArr, max) => {
-    const _z = [];
+const stringify = (that, zArr) => {
+    const {data, max, layer} = that,
+          _max = max.toString().length,
+          _z = [];
     for(const [i,z] of zArr.entries()) {
         const _y = [];
         for(const [j,y] of data[z].entries()) {
             const _x = [];
             for(const x of data[z][j]) {
                 const s = x === -1 ? '' : x.toString();
-                _x.push(' '.repeat(max - s.length) + s);
+                _x.push(' '.repeat(_max - s.length) + s);
             }
             _y.push(_x.join(','));
         }
-        _z.push(`$${i}\n` + _y.join('\n'));
+        const s = layer.get(z)?.replace(/#$,:/g, '');
+        _z.push(`$${i}${s ? ': ' + s : ''}\n` + _y.join('\n'));
     }
     return _z.join('\n\n');
 };
