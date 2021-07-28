@@ -176,7 +176,7 @@ const stringify = (that, zArr) => {
             }
             _y.push(_x.join(','));
         }
-        const s = layer.get(z)?.replace(/#$,:/g, '');
+        const s = layer.get(z)?.replace(/#$:/g, '');
         _z.push(`$${i}${s ? ': ' + s : ''}\n` + _y.join('\n'));
     }
     return _z.join('\n\n');
