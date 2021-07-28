@@ -167,7 +167,7 @@
               thead = $('<thead>').appendTo(table),
               tr = $('<tr>').appendTo(thead);
         for(const str of [
-            'id', 'img', 'delete'
+            'key', 'img', 'delete'
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => openWindowSelect(tbody));
@@ -355,8 +355,14 @@
     const openWindowLayer = () => {
         const win = Win.make('レイヤー操作');
         if(!win) return;
-        const {elm} = win,
-              table = $('<table>').appendTo(elm);
+        const {elm} = win;
+        $('<div>').appendTo(elm).text('下に位置するほど前面に描画される');
+        const table = $('<table>').appendTo(elm),
+              thead = $('<thead>').appendTo(table),
+              tr = $('<tr>').appendTo(thead);
+        for(const str of [
+            'name', 'hide', 'delete'
+        ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table).sortable({
             opacity: 0.6,
             placeholder: 'drag',
@@ -382,7 +388,9 @@
             input.z = z;
         });
         if(input.z === z) tr.addClass(activeClassL);
-        $('<th>').appendTo(tr).text(`レイヤー${z}`);
+        const {layer} = dqMap,
+              elm = $('<input>').prop('placeholder', `layer${z}`).val(layer.get(z)).on('change', () => layer.set(z, elm.val()));
+        $('<th>').appendTo(tr).appendTo(elm);
         $('<button>').appendTo($('<td>').appendTo(tr)).text('非表示').on('click',()=>{
             tr.toggleClass('off');
             zMap.set(z, !zMap.get(z));
