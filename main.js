@@ -72,8 +72,8 @@
                     return false;
                 }
             }
-            const win = new rpgen5.Jsframe(ttl);
-            m.set(ttl, win.goto(...this._xy(win)));
+            const win = new rpgen5.Jsframe(ttl).set(480, 330).goto(...this._xy(win));
+            m.set(ttl, win);
             return win;
         }
         _xy(win){
