@@ -28,8 +28,8 @@ export class DQMap {
         this.info = {width, height, depth};
         this.data = [];
         for(let i = 0; i < depth; i++) this.add(false);
+        this.define.clear();
         this.layer.clear();
-        return this;
     }
     add(isNew = true){
         const {info} = this,
@@ -62,11 +62,10 @@ export class DQMap {
     input(str, factory = v => v){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
         if([info, define, data].some(v => !v)) throw new Error('DQMap needs #info, #define and #data');
-        this.define = new Map;
-        for(const v of toArr2(toArr(define))) this.set(factory(v));
         const {width, height, depth} = toArr(info).reduce((p, [k, v]) => (p[k] = toInt(v), p), {});
-        parse(this.init(width, height, depth), data);
-        return this;
+        this.init(width, height, depth);
+        for(const v of toArr2(toArr(define))) this.set(factory(v));
+        parse(this, data);
     }
     output(zArr = [...new Array(this.depth).keys()]){ // マップデータを文字列化
         const m = new Map,
