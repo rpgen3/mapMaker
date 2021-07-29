@@ -354,7 +354,7 @@
     };
     const activeClassL = 'activeLayer';
     const addTrLayer = z => {
-        const tr = $('<tr>').prop({z}).on('click',()=>{
+        const tr = $('<tr>').prop({z}).addClass('layer').on('click',()=>{
             $('.' + activeClassL).removeClass(activeClassL);
             tr.addClass(activeClassL);
             input.z = z;
