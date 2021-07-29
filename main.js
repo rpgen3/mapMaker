@@ -346,8 +346,7 @@
         });
         for(const z of zMap.keys()) if(!isNaN(z)) addTrLayer(z).appendTo(tbody);
         $('<div>').appendTo(elm).append('<span>').addClass('plusBtn').on('click', () => {
-            dqMap.data.push(dqMap.make());
-            const z = dqMap.info.depth++;
+            const z = dqMap.add();
             zMap.set(z, true).get('order').push(z);
             addTrLayer(z).appendTo(tbody).trigger('click');
         });
