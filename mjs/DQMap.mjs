@@ -7,7 +7,9 @@ export class DQMap {
     set(obj){
         for(let i = obj.first; i <= obj.last; i++) this.define.set(i, obj);
     }
-    delete(obj, key){
+    delete(key){
+        const obj = this.define.get(key);
+        if(!obj) return;
         const del = k => (this.define.delete(k), k),
               dels = k => [...new Array(obj.way.length).keys()].map(v => del(k + v)),
               rm = i => {
@@ -16,8 +18,8 @@ export class DQMap {
                   if(idx !== -1) index.splice(idx, 1);
               };
         switch(obj.type){
-            case 0: return del(key);
-            case 1: return rm(key), del(key);
+            case 0: return [del(key)];
+            case 1: return rm(key), [del(key)];
             case 2: return dels(key);
             case 3: return rm(key / obj.way.length), dels(key);
         }
