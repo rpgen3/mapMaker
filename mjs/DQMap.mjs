@@ -7,9 +7,7 @@ export class DQMap {
     set(obj){
         for(let i = obj.first; i <= obj.last; i++) this.define.set(i, obj);
     }
-    delete(key){
-        const obj = this.define.get(key);
-        if(!obj) return;
+    delete(obj, key){
         const del = k => (this.define.delete(k), k),
               dels = k => [...new Array(obj.way.length).keys()].map(v => del(k + v)),
               rm = i => {
