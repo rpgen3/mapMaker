@@ -26,13 +26,15 @@ export class DQMap {
     }
     init(width, height, depth){
         this.info = {width, height, depth};
-        this.data = [...new Array(depth)].map(() => this.make());
+        for(let i = 0; i < depth; i++) this.add(false);
         this.layer.clear();
         return this;
     }
-    make(){
-        const {height, width} = this.info;
-        return [...new Array(height)].map(() => [...new Array(width).fill(-1)]);
+    add(isNew = true){
+        const {info} = this,
+              {height, width} = info;
+        this.data.push([...new Array(height)].map(() => [...new Array(width).fill(-1)]));
+        if(isNew) return ++info.depth;
     }
     put(x, y, z, v = -1){
         if(!this.isOut(x, y, z) && this.data[z][y][x] !== v) this.data[z][y][x] = v;
