@@ -361,7 +361,7 @@
         });
         if(input.z === z) tr.addClass(activeClassL);
         const {layer} = dqMap,
-              elm = $('<input>').prop('placeholder', `layer${z}`).val(layer.get(z)).on('change', () => layer.set(z, elm.val()));
+              elm = $('<input>').prop('placeholder', `layer ${z}`).val(layer.get(z)).on('change', () => layer.set(z, elm.val()));
         $('<th>').appendTo(tr).append(elm);
         $('<button>').appendTo($('<td>').appendTo(tr)).text('非表示').on('click',()=>{
             tr.toggleClass('off');
