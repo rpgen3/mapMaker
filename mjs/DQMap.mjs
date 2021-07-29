@@ -4,18 +4,26 @@ export class DQMap {
         this.define = new Map;
         this.layer = new Map;
     }
-    setDefine(v){
-        for(let i = v.first; i <= v.last; i++) this.define.set(i, v);
+    set(obj){
+        for(let i = obj.first; i <= obj.last; i++) this.define.set(i, obj);
     }
-    set(width, height, depth){
-        const {info} = this;
-        info.width = width;
-        info.height = height;
-        info.depth = depth;
-        return this;
+    delete(obj, key){
+        const del = k => (this.define.delete(k), k),
+              dels = k => [...new Array(obj.way.length).keys()].map(v => del(k + v)),
+              rm = i => {
+                  const {index} = obj,
+                        idx = index.indexOf(i);
+                  if(idx !== -1) index.splice(idx, 1);
+              };
+        switch(obj.type){
+            case 0: return del(key);
+            case 1: return rm(key), del(key);
+            case 2: return dels(key);
+            case 3: return rm(key / obj.way.length), dels(key);
+        }
     }
-    init(){
-        const {depth} = this.info;
+    init(width, height, depth){
+        this.info = {width, height, depth};
         this.data = [...new Array(depth)].map(() => this.make());
         this.layer.clear();
         return this;
@@ -49,10 +57,10 @@ export class DQMap {
     input(str, factory = v => v){ // 文字列からマップデータを読み込む
         const [info, define, data] = ['info', 'define', 'data'].map(v => str.match(new RegExp(`#${v}[^#]+`, 'g'))?.[0]);
         if([info, define, data].some(v => !v)) throw new Error('DQMap needs #info, #define and #data');
-        this.info = toArr(info).reduce((p, [k, v]) => (p[k] = toInt(v), p), {});
         this.define = new Map;
-        for(const v of toArr2(toArr(define))) this.setDefine(factory(v));
-        parse(this.init(), data);
+        for(const v of toArr2(toArr(define))) this.set(factory(v));
+        const {width, height, depth} = toArr(info).reduce((p, [k, v]) => (p[k] = toInt(v), p), {});
+        parse(this.init(width, height, depth), data);
         return this;
     }
     output(zArr = [...new Array(this.depth).keys()]){ // マップデータを文字列化
