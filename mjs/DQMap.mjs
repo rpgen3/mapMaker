@@ -26,6 +26,7 @@ export class DQMap {
     }
     init(width, height, depth){
         this.info = {width, height, depth};
+        this.data = [];
         for(let i = 0; i < depth; i++) this.add(false);
         this.layer.clear();
         return this;
