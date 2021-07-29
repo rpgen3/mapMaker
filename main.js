@@ -72,8 +72,8 @@
                     return false;
                 }
             }
-            const win = new rpgen5.Jsframe(ttl).set(480, 330).goto(...this._xy(win));
-            m.set(ttl, win);
+            const win = new rpgen5.Jsframe(ttl).set(480, 330);
+            m.set(ttl, win.goto(...this._xy(win)));
             return win;
         }
         _xy(win){
@@ -112,7 +112,7 @@
             save: true
         });
         await promiseBtn(elm, 'マップを新規作成');
-        dqMap.set(...[w, h, d].map(v => v()).map(toInt)).init();
+        dqMap.init(...[w, h, d].map(v => v()).map(toInt));
         init.main();
         win.delete();
     };
@@ -271,7 +271,7 @@
               _i = index?.length,
               _w = way?.length;
         _obj.last = _obj.first - 1 + [1, _i, _w, _i * _w][type];
-        dqMap.setDefine(_obj);
+        dqMap.set(_obj);
         await Promise.all([
             addTr(tbody, _obj),
             addPalette(_obj)
@@ -304,41 +304,13 @@
             ).appendTo(tbody);
         }
     };
-    const deleteKey = (obj, key) => {
-        const del = k => dqMap.define.delete(k),
-              dels = k => {
-                  for(let i = 0; i < obj.way.length; i++) del(k + i);
-              },
-              rm = i => {
-                  const {index} = obj,
-                        idx = index.indexOf(i);
-                  if(idx !== -1) index.splice(idx, 1);
-              };
-        switch(obj.type){
-            case 0:
-                del(key);
-                break;
-            case 1:
-                del(key);
-                rm(key);
-                break;
-            case 2:
-                dels(key);
-                break;
-            case 3:
-                dels(key);
-                rm(key / obj.way.length);
-                break;
-        }
-        $('.' + paletteKeyClass(key)).remove();
-    };
     const makeTr = (obj, key, s, ttl) => {
         const tr = $('<tr>');
         $('<th>').appendTo(tr).text(ttl);
         $('<td>').appendTo(tr).append(makeCanvas(obj, key + s));
         $('<button>').appendTo($('<td>').appendTo(tr)).text('削除').on('click',() => {
             tr.remove();
-            deleteKey(obj, key);
+            dqMap.delete(key)?.map(v => $('.' + paletteKeyClass(v)).remove());
         });
         return tr;
     };
