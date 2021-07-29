@@ -333,7 +333,7 @@
               thead = $('<thead>').appendTo(table),
               tr = $('<tr>').appendTo(thead);
         for(const str of [
-            'name', 'hide', 'delete'
+            'label', 'hide', 'delete'
         ]) $('<th>').appendTo(tr).text(str);
         const tbody = $('<tbody>').appendTo(table).sortable({
             opacity: 0.6,
