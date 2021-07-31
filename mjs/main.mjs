@@ -1,4 +1,4 @@
-export {cv, dqMap, update, zMap, input, factory, unitSize, player, scale};
+export {cv, dqMap, update, zMap, input, factory, unitSize, player, scale, redFrame};
 const unitSize = 48,
       input = {y: 6, z: 0, k: -1},
       zMap = new Map;
@@ -6,7 +6,8 @@ let g_debug;
 const {importAll} = await import('https://rpgen3.github.io/mylib/export/import.mjs');
 const rpgen3 = await importAll([
     'str2img',
-    'url'
+    'url',
+    'gradation'
 ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`));
 const loadImg = url => new Promise((resolve, reject) => {
     const img = new Image;
@@ -328,15 +329,12 @@ const scale = {
     update(ctx){
         if(this.hide) return;
         const {w, h} = cv,
-              {_x, _y} = frame,
-              x = _x * unitSize,
-              y = _y * unitSize,
-              max = Math.max(w, h);
+              max = Math.max(w, h),
+              {_x, _y} = frame;
         ctx.beginPath();
         for(let i = -1; i <= max; i++){
-            const _i = i * unitSize,
-                  a = _i + x,
-                  b = _i + y;
+            const a = (_x + i) * unitSize,
+                  b = (_y + i) * unitSize;
             if(i <= w) ctx.moveTo(a, 0), ctx.lineTo(a, h);
             if(i <= h) ctx.moveTo(0, b), ctx.lineTo(w, b);
         }
@@ -344,6 +342,34 @@ const scale = {
     }
 };
 layer.set(scale);
+const redFrame = new class {
+    constructor(){
+        this.w = 15;
+        this.h = 11;
+    }
+    set(w = 1, h = 1){
+        this.w = w;
+        this.h = h;
+    }
+    update(ctx){
+        if(this.hide) return;
+        const {w, h} = this,
+              {x, y, _x, _y} = frame,
+              sX = (x + _x - (w >> 1)) * unitSize,
+              sY = (y + _y - (h >> 1)) * unitSize,
+              sW = w * unitSize,
+              sH = h * unitSize;
+        ctx.strokeStyle = `rgb(${rpgen3.gradation(g_nowTime, 10000).join(',')})`;
+        ctx.beginPath();
+        ctx.moveTo(sX, sY);
+        ctx.lineTo(sX + sW, sY);
+        ctx.lineTo(sX + sW, sY + sH);
+        ctx.lineTo(sX, sY + sH);
+        ctx.lineTo(sX, sY);
+        ctx.stroke();
+    }
+};
+layer.set(redFrame);
 class SimpleText {
     constructor({text = '', color = 'black', size = 16}){
         this.x = this.y = 0;
