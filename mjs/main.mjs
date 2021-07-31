@@ -332,6 +332,7 @@ const scale = {
               max = Math.max(w, h),
               {_x, _y} = frame;
         ctx.strokeStyle = 'rgb(0,0,0)';
+        ctx.lineWidth = 1;
         ctx.beginPath();
         for(let i = -1; i <= max; i++){
             const a = (_x + i) * unitSize,
@@ -361,6 +362,7 @@ const redFrame = new class {
               sW = w * unitSize,
               sH = h * unitSize;
         ctx.strokeStyle = `rgb(${rpgen3.gradation(g_nowTime, 10000).join(',')})`;
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(sX, sY);
         ctx.lineTo(sX + sW, sY);
