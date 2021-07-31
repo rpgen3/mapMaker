@@ -331,6 +331,7 @@ const scale = {
         const {w, h} = cv,
               max = Math.max(w, h),
               {_x, _y} = frame;
+        ctx.strokeStyle = 'rgb(0,0,0)';
         ctx.beginPath();
         for(let i = -1; i <= max; i++){
             const a = (_x + i) * unitSize,
