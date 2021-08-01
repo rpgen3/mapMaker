@@ -289,7 +289,7 @@ const player = new class {
         ];
     }
     draw(ctx){
-        this.costume.draw?.(ctx, ...['X', 'Y'].map(v => this._switchP(v)), this.key, input.y);
+        this.costume.draw?.(ctx, ...['X', 'Y'].map(v => frame._switchP(v)), this.key, input.y);
     }
     goto(x = 0, y = 0){
         const {width, height} = dqMap.info;
@@ -368,7 +368,7 @@ const redFrame = new class {
     }
     update(ctx){
         if(this.hide) return;
-        const [x, y] = ['X', 'Y'].map(v => this._switchR(v) * unitSize),
+        const [x, y] = ['X', 'Y'].map(v => frame._switchR(v) * unitSize),
               w = this.w * unitSize,
               h = this.h * unitSize;
         ctx.strokeStyle = `rgb(${rpgen3.gradation(g_nowTime, 5000).join(',')})`;
