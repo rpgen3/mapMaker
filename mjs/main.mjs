@@ -163,9 +163,6 @@ const factory = v => Object.assign(new [Sprite, SpriteSplit, Anime, AnimeSplit][
 const frame = new class {
     constructor(){
         this.x = this.y = this._x = this._y = 0;
-        for(const attr of [
-            'start', 'end', 'status'
-        ]) for(const xy of ['X', 'Y']) this[attr + xy] = 0;
     }
     set(w, h){
         this.w = w | 0;
@@ -214,13 +211,11 @@ const frame = new class {
     _switchF(XY, xy){
         const value = player['now' + XY],
               start = this['start' + XY],
-              end = this['end' + XY],
-              status = this['status' + XY],
-              next = player[xy];
-        switch(status){
+              end = this['end' + XY];
+        switch(this['status' + XY]){
             case -1: return [0, 0];
             case 0: {
-                const v = next - value;
+                const v = player[xy] - value;
                 return [value - start | 0, v === -1 ? 0 : v > 0 ? v - 1 : v];
             }
             case 1: return [end - start, 0];
@@ -229,16 +224,22 @@ const frame = new class {
     _switchP(XY){
         const value = player['now' + XY],
               start = this['start' + XY],
-              end = this['end' + XY],
-              status = this['status' + XY];
-        switch(status){
+              end = this['end' + XY];
+        switch(this['status' + XY]){
             case -1: return value;
             case 0: return start;
             case 1: return value - (end - start);
         }
     }
-    calcPlayerXY(x, y){
-        return ['X', 'Y'].map(v => this._switchP(v));
+    _switchR(XY){
+        const value = player['now' + XY],
+              start = this['start' + XY],
+              end = this['end' + XY];
+        switch(this['status' + XY]){
+            case -1: return value;
+            case 0: return start;
+            case 1: return value - (end - start);
+        }
     }
 };
 const player = new class {
@@ -288,8 +289,7 @@ const player = new class {
         ];
     }
     draw(ctx){
-        const {nowX, nowY} = this;
-        this.costume.draw?.(ctx, ...frame.calcPlayerXY(nowX, nowY), this.key, input.y);
+        this.costume.draw?.(ctx, ...['X', 'Y'].map(v => this._switchP(v)), this.key, input.y);
     }
     goto(x = 0, y = 0){
         const {width, height} = dqMap.info;
@@ -368,20 +368,17 @@ const redFrame = new class {
     }
     update(ctx){
         if(this.hide) return;
-        const {w, h} = this,
-              {x, y, _x, _y} = frame,
-              sX = (x + _x - (w >> 1)) * unitSize,
-              sY = (y + _y - (h >> 1)) * unitSize,
-              sW = w * unitSize,
-              sH = h * unitSize;
-        ctx.strokeStyle = `rgb(${rpgen3.gradation(g_nowTime, 10000).join(',')})`;
+        const [x, y] = ['X', 'Y'].map(v => this._switchR(v) * unitSize),
+              w = this.w * unitSize,
+              h = this.h * unitSize;
+        ctx.strokeStyle = `rgb(${rpgen3.gradation(g_nowTime, 5000).join(',')})`;
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(sX, sY);
-        ctx.lineTo(sX + sW, sY);
-        ctx.lineTo(sX + sW, sY + sH);
-        ctx.lineTo(sX, sY + sH);
-        ctx.lineTo(sX, sY);
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + w, y);
+        ctx.lineTo(x + w, y + h);
+        ctx.lineTo(x, y + h);
+        ctx.lineTo(x, y);
         ctx.stroke();
     }
 };
