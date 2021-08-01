@@ -163,6 +163,9 @@ const factory = v => Object.assign(new [Sprite, SpriteSplit, Anime, AnimeSplit][
 const frame = new class {
     constructor(){
         this.x = this.y = this._x = this._y = 0;
+        for(const attr of [
+            'start', 'end', 'status'
+        ]) for(const xy of ['X', 'Y']) this[attr + xy] = 0;
     }
     set(w, h){
         this.w = w | 0;
@@ -173,8 +176,13 @@ const frame = new class {
         if(!dqMap.data) return;
         const {w, h} = this,
               {width, height} = dqMap.info;
-        [this.x, this._x] = this._switchF(player.nowX, w, width, player.x);
-        [this.y, this._y] = this._switchF(player.nowY, h, height, player.y);
+        [this.startX, this.endX] = this._f(w, width);
+        [this.startY, this.endY] = this._f(h, height);
+        for(const xy of ['x', 'y']) {
+            const XY = xy.toUpperCase();
+            this['status' + XY] = this._get3state(XY);
+            [this[xy], this['_' + xy]] = this._switchF(XY, xy);
+        }
         const {x, y, _x, _y} = this,
               w2 = w + 2,
               h2 = h + 2,
@@ -197,35 +205,40 @@ const frame = new class {
         const pivot = w >> 1;
         return [pivot, width - pivot - 1];
     }
-    _get3state(x, pivot, max){
-        return max < pivot || x <= pivot ? -1 : x < max ? 0 : 1;
+    _get3state(XY){
+        const value = player['now' + XY],
+              start = this['start' + XY],
+              end = this['end' + XY];
+        return end < start || value <= start ? -1 : value < end ? 0 : 1;
     }
-    _switchF(x, w, width, next){
-        const [pivot, max] = this._f(w, width);
-        switch(this._get3state(x, pivot, max)){
+    _switchF(XY, xy){
+        const value = player['now' + XY],
+              start = this['start' + XY],
+              end = this['end' + XY],
+              status = this['status' + XY],
+              next = player[xy];
+        switch(status){
             case -1: return [0, 0];
             case 0: {
-                const v = next - x;
-                return [x - pivot | 0, v === -1 ? 0 : v > 0 ? v - 1 : v];
+                const v = next - value;
+                return [value - start | 0, v === -1 ? 0 : v > 0 ? v - 1 : v];
             }
-            case 1: return [max - pivot, 0];
+            case 1: return [end - start, 0];
         }
     }
-    _switchP(x, w, width){
-        const [pivot, max] = this._f(w, width);
-        switch(this._get3state(x, pivot, max)){
-            case -1: return x;
-            case 0: return pivot;
-            case 1: return x - (max - pivot);
+    _switchP(XY){
+        const value = player['now' + XY],
+              start = this['start' + XY],
+              end = this['end' + XY],
+              status = this['status' + XY];
+        switch(status){
+            case -1: return value;
+            case 0: return start;
+            case 1: return value - (end - start);
         }
     }
     calcPlayerXY(x, y){
-        const {w, h} = this,
-              {width, height} = dqMap.info;
-        return [
-            this._switchP(x, w, width),
-            this._switchP(y, h, height)
-        ];
+        return ['X', 'Y'].map(v => this._switchP(v));
     }
 };
 const player = new class {
