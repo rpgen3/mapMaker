@@ -342,7 +342,8 @@ const scale = {
     update(ctx){
         if(this.hide) return;
         const {w, h} = cv,
-              max = Math.max(w, h),
+              [_w, _h] = [w, h].map(v => v / unitSize | 0),
+              max = Math.max(_w, _h),
               {_x, _y} = frame;
         ctx.strokeStyle = 'rgb(0,0,0)';
         ctx.lineWidth = 1;
@@ -350,8 +351,8 @@ const scale = {
         for(let i = -1; i <= max; i++){
             const a = (_x + i) * unitSize,
                   b = (_y + i) * unitSize;
-            if(i <= w) ctx.moveTo(a, 0), ctx.lineTo(a, h);
-            if(i <= h) ctx.moveTo(0, b), ctx.lineTo(w, b);
+            if(i <= _w) ctx.moveTo(a, 0), ctx.lineTo(a, h);
+            if(i <= _h) ctx.moveTo(0, b), ctx.lineTo(w, b);
         }
         ctx.stroke();
     }
